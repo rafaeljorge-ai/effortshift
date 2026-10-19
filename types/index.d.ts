@@ -110,7 +110,7 @@ export type AgentRec = {
   waitingSince?: number
   model?: string
   effort?: string
-  /** Why effortless picked that, a few words. */
+  /** Why effortshift picked that, a few words. */
   why?: string
   /** Weighted tokens so far. */
   cost?: number
@@ -132,7 +132,7 @@ export type FileTouch = {
 
 declare module 'claude-code' {
   interface PluginState {
-    effortless: {
+    effortshift: {
       /** Auto on effort: every prompt is judged and its effort applied. */
       isAuto: boolean
       /** The last change Auto made to the effort, shown for a moment as "Low → High". */
@@ -156,7 +156,7 @@ declare module 'claude-code' {
       judgeTest: { ok: boolean | null; text: string } | null
       /** The reason the judge-down band was closed for. */
       judgeDownHidden: string | null
-      /** The effortless settings panel is open above the prompt. */
+      /** The effortshift settings panel is open above the prompt. */
       settingsOpen: boolean
       settingsCard: 'effort' | 'judge' | 'handoff' | 'show' | null
       /** Changes made in the settings panel and not saved yet. */

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>EffortShift — sessão local</title><link rel="stylesheet" href="/styles.css"><script type="module" src="/app.js"></script></head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="EffortShift início"><span class="mark" aria-hidden="true">↗</span> EFFORTSHIFT</a><span class="local">LOCAL <span aria-hidden="true">/</span> <span id="connection" role="status">Carregando sessão…</span></span></header>
+<main>
+<section class="intro"><div><p class="eyebrow">CONTROLE DE ESFORÇO · CODEX</p><h1>Sua sessão, <br>na marcha certa.</h1><p class="subtitle">Uma tarefa de cada vez. O esforço à vista.</p></div><button id="connect" class="primary" disabled>Conectar Codex <span aria-hidden="true">↗</span></button></section>
+<div id="error" class="error" role="alert" hidden></div>
+<div class="workspace">
+<section class="session" aria-label="Sessão Codex">
+<div class="instrument"><div class="section-label"><h2>Marcha do turno</h2><span id="decision-status" class="tag">AGUARDANDO</span></div><div id="efforts" class="effort-track" aria-label="Esforço do turno"></div><p id="reason">Conecte o Codex e envie uma tarefa para ver a decisão.</p><p class="fine">O esforço aceito vale para este turno.</p></div>
+<div class="conversation-head"><h2>Conversa</h2><span id="activity" class="mono">SEM SESSÃO</span></div>
+<div id="messages" class="messages" role="log" aria-label="Conversa com Codex" aria-live="polite" aria-relevant="additions text"><div class="empty"><span aria-hidden="true">↗</span><h3>O próximo passo começa aqui.</h3><p>Conecte seu Codex local para conversar com o agente real.</p></div></div>
+<section id="approvals" aria-label="Aprovações pendentes" hidden></section>
+<form id="composer"><label for="prompt">O que vamos resolver?</label><textarea id="prompt" name="prompt" rows="4" placeholder="Descreva a tarefa e o resultado que você espera…" aria-describedby="compose-hint"></textarea><div class="compose-actions"><span id="compose-hint" class="fine">Ctrl / ⌘ + Enter para enviar</span><div><button id="interrupt" type="button" hidden>Interromper</button><button id="send" class="primary" disabled>Enviar tarefa <span aria-hidden="true">↑</span></button></div></div></form>
+</section>
+<aside aria-label="Controles da sessão">
+<section class="controls"><p class="eyebrow">PRÓXIMO TURNO</p><h2>Ajuste a marcha.</h2><label for="model">Modelo</label><select id="model" disabled><option value="">Conecte para descobrir</option></select><label for="profile">Perfil</label><select id="profile"><option value="economy">Econômico</option><option value="balanced" selected>Equilibrado</option><option value="quality">Qualidade</option></select><label for="mode">Modo de esforço</label><select id="mode"><option value="auto">Auto · regras locais</option><option value="manual">Manual</option></select><label id="manual-label" for="manualEffort" hidden>Esforço manual</label><select id="manualEffort" hidden disabled></select><p class="fine">Mudanças valem para o próximo turno. Tarefas críticas mantêm seu piso de esforço.</p></section>
+<section class="telemetry"><div class="section-label"><h2>Sinal da sessão</h2><span class="signal" aria-hidden="true">···</span></div><dl><div><dt>Contexto</dt><dd id="context">Indisponível</dd></div><div><dt>Tokens de entrada</dt><dd id="input">Indisponível</dd></div><div><dt>Entrada em cache</dt><dd id="cached">Indisponível</dd></div><div><dt>Tokens de saída</dt><dd id="output">Indisponível</dd></div><div><dt>Limite primário usado</dt><dd id="primary">Indisponível</dd></div><div><dt>Limite secundário usado</dt><dd id="secondary">Indisponível</dd></div></dl></section>
+<details class="events"><summary>Eventos da sessão</summary><ol id="events"><li>Aguardando conexão.</li></ol></details>
+<details class="claude"><summary>Usar com Claude Code <span>↗</span></summary><p>O Claude usa o painel nativo do plugin, em uma sessão separada. Este painel controla apenas o Codex.</p><code id="claude-command">claude --plugin-dir &lt;raiz-do-fork&gt;</code><p class="fine">Claude: juiz Haiku/Jev do plugin original. Codex: regras locais sem chamada avaliadora extra. Atualizador upstream desativado no fork.</p></details>
+</aside></div>
+<footer><span>EFFORTSHIFT · LOCAL ALPHA</span><span>Somente leitura por padrão · métricas informadas pelo Codex</span></footer>
+</main>
+</body></html>

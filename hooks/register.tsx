@@ -73,7 +73,7 @@ const EFFORT_LABELS: Record<Effort, string> = { low: 'Low', medium: 'Medium', hi
 
 // Auto is two switches. `isAuto` is effort (the name stays: it is what the store and state hold);
 // `isAutoModel` lets the judge suggest another model and starts off.
-const isAuto = atom({ plugin: 'effortless', key: 'isAuto' } as const, true)
+const isAuto = atom({ plugin: 'effortshift', key: 'isAuto' } as const, true)
 const JEV_TIMEOUT_MS = 3000
 const JEV_URL = 'https://api.typesafe.ai/v1/systemone'
 const EMPTY_SPENT: Spent = { prompts: 0, requests: 0, input: 0, write: 0, read: 0, out: 0, byEffort: {}, judge: { jev: 0, haiku: 0, ms: 0, tokens: 0 }, moved: 0, redone: 0 }
@@ -101,25 +101,25 @@ const SLATE_BG = '#12141b'
 const SLATE_EDGE = '#39415a'
 const YELLOW = '#e0a33a'
 const RED = '#e5534b'
-const isAutoModel = atom({ plugin: 'effortless', key: 'isAutoModel' } as const, false)
-const pick = atom({ plugin: 'effortless', key: 'pick' } as const, null)
-const isJudging = atom({ plugin: 'effortless', key: 'isJudging' } as const, false)
-const suggestion = atom({ plugin: 'effortless', key: 'suggestion' } as const, null)
-const appEffort = atom({ plugin: 'effortless', key: 'appEffort' } as const, null)
-const model = atom({ plugin: 'effortless', key: 'model' } as const, null)
+const isAutoModel = atom({ plugin: 'effortshift', key: 'isAutoModel' } as const, false)
+const pick = atom({ plugin: 'effortshift', key: 'pick' } as const, null)
+const isJudging = atom({ plugin: 'effortshift', key: 'isJudging' } as const, false)
+const suggestion = atom({ plugin: 'effortshift', key: 'suggestion' } as const, null)
+const appEffort = atom({ plugin: 'effortshift', key: 'appEffort' } as const, null)
+const model = atom({ plugin: 'effortshift', key: 'model' } as const, null)
 // The last change Auto made to the effort, shown for a moment as "Low → High" and then cleared.
-const switched = atom({ plugin: 'effortless', key: 'switched' } as const, null)
+const switched = atom({ plugin: 'effortshift', key: 'switched' } as const, null)
 // What the prompts Auto steered cost this session, measured, and what judging them took.
-const saved = atom({ plugin: 'effortless', key: 'saved' } as const, EMPTY_SPENT)
+const saved = atom({ plugin: 'effortshift', key: 'saved' } as const, EMPTY_SPENT)
 // True while the session runs a model where Auto must not change effort (see cacheSafe).
-const paused = atom({ plugin: 'effortless', key: 'paused' } as const, false)
+const paused = atom({ plugin: 'effortshift', key: 'paused' } as const, false)
 // How long the main conversation's prompt cache stays warm, in whole minutes left: null before the first response,
 // 0 once it has gone cold. Updated only when the minute changes, so the footer redraws once a minute at most.
-const cacheLeft = atom({ plugin: 'effortless', key: 'cacheLeft' } as const, null)
-const cacheMemo = atom({ plugin: 'effortless', key: 'cacheMemo' } as const, null)
-const isCompacting = atom({ plugin: 'effortless', key: 'isCompacting' } as const, false)
+const cacheLeft = atom({ plugin: 'effortshift', key: 'cacheLeft' } as const, null)
+const cacheMemo = atom({ plugin: 'effortshift', key: 'cacheMemo' } as const, null)
+const isCompacting = atom({ plugin: 'effortshift', key: 'isCompacting' } as const, false)
 // The compact bar: open after Compact is pressed, with a field for what the summary should keep.
-const compactAsk = atom({ plugin: 'effortless', key: 'compactAsk' } as const, false)
+const compactAsk = atom({ plugin: 'effortshift', key: 'compactAsk' } as const, false)
 // What is typed in that field. Kept here, not in state: a write per key would redraw the bar under the cursor.
 let compactNote = ''
 // When the compact bar opened: its first half second fades the swamped band's colours out (see compactFadeSvg).
@@ -130,15 +130,15 @@ function compactFadeSvg(elapsedMs: number): string {
   return inPhase(`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="240" viewBox="0 0 1600 240" preserveAspectRatio="none"><style>.f{animation:f ${COMPACT_FADE_MS / 1000}s ease-out forwards}@keyframes f{from{opacity:1}to{opacity:0}}</style><rect class="f" width="1600" height="240" fill="${BOG_BG}"/></svg>`, elapsedMs)
 }
 // The person closed the cold band; it comes back the next time the cache goes cold.
-// The test pane of /effortless try pane.
+// The test pane of /effortshift try pane.
 // Where a handoff is: null idle, writing (the handoff turn runs), clearing (clear and resend).
-const handoffStage = atom({ plugin: 'effortless', key: 'handoffStage' } as const, null)
+const handoffStage = atom({ plugin: 'effortshift', key: 'handoffStage' } as const, null)
 // The handoff bar above the prompt, open with the choice shown in it, or null.
-const handoffPick = atom({ plugin: 'effortless', key: 'handoffPick' } as const, null)
+const handoffPick = atom({ plugin: 'effortshift', key: 'handoffPick' } as const, null)
 // The context is swamped: tokens read per request, or null below the line. Drives the swamp band.
-const swamped = atom({ plugin: 'effortless', key: 'swamped' } as const, null)
+const swamped = atom({ plugin: 'effortshift', key: 'swamped' } as const, null)
 // Why Haiku thinks a handoff would suit now, or null. It lights Handoff and says why; there is no percent threshold.
-const handoffAdvice = atom({ plugin: 'effortless', key: 'handoffAdvice' } as const, null)
+const handoffAdvice = atom({ plugin: 'effortshift', key: 'handoffAdvice' } as const, null)
 // The swamp band was closed at this many tokens; it comes back once the context has grown well past it.
 // The handoff card above the prompt: shown from the start of a handoff, and once it lands ('done' in the
 // cleared chat, 'copied'). It goes with the next message, its ✕, or HANDOFF_CARD_MS after it was set.
@@ -147,8 +147,8 @@ type HandoffCard = { kind: 'writing' | 'done' | 'copied' | 'compacting' | 'compa
 const cardRunning = (kind: HandoffCard['kind']) => kind === 'writing' || kind === 'compacting'
 // Kinds that landed well: the card turns green with a checkmark.
 const cardLanded = (kind: HandoffCard['kind']) => kind === 'done' || kind === 'compacted'
-const handoffCard = atom({ plugin: 'effortless', key: 'handoffCard' } as const, null)
-const updateCard = atom({ plugin: 'effortless', key: 'updateCard' } as const, null)
+const handoffCard = atom({ plugin: 'effortshift', key: 'handoffCard' } as const, null)
+const updateCard = atom({ plugin: 'effortshift', key: 'updateCard' } as const, null)
 const HANDOFF_CARD_MS = 2 * 60_000
 // The handoff card's art while it is written: sparkles carried from left to right.
 const HANDOFF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="64" viewBox="0 0 360 30" preserveAspectRatio="xMaxYMid slice"><style>:root{color-scheme:light dark}html,body{margin:0}svg{background:transparent;display:block}.d{fill:#d9d1ff;opacity:0;animation-name:go;animation-timing-function:ease-in-out;animation-iteration-count:infinite}@keyframes go{0%{opacity:0;transform:translate(0,0)}15%{opacity:.9}85%{opacity:.7}100%{opacity:0;transform:translate(190px,0)}}.br{animation:br 2.4s ease-in-out infinite}@keyframes br{0%,100%{opacity:.75}50%{opacity:1}}</style><defs><linearGradient id="bg" x1="0" x2="1"><stop offset=".43" stop-color="#7c6cf0" stop-opacity="0"/><stop offset=".7" stop-color="#7c6cf0" stop-opacity=".2"/><stop offset="1" stop-color="#b3a6ff" stop-opacity=".46"/></linearGradient><linearGradient id="fade" x1="0" x2="1"><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="m"><rect width="360" height="30" fill="url(#fade)"/></mask><pattern id="grain" width="2" height="2" patternUnits="userSpaceOnUse"><rect width=".6" height=".6" fill="#fff" fill-opacity=".07"/></pattern></defs><g mask="url(#m)"><rect class="br" width="360" height="30" fill="url(#bg)"/><circle class="d" cx="170" cy="9.2" r="0.83" style="animation-duration:2.7s;animation-delay:-2.2s"/><circle class="d" cx="170" cy="17.8" r="0.54" style="animation-duration:2.2s;animation-delay:-3.0s"/><circle class="d" cx="170" cy="9.7" r="0.64" style="animation-duration:3.6s;animation-delay:-1.7s"/><circle class="d" cx="170" cy="22.4" r="0.79" style="animation-duration:3.1s;animation-delay:-0.5s"/><circle class="d" cx="170" cy="18.0" r="1.02" style="animation-duration:2.9s;animation-delay:-2.7s"/><circle class="d" cx="170" cy="18.8" r="0.54" style="animation-duration:3.3s;animation-delay:-2.1s"/><circle class="d" cx="170" cy="10.6" r="0.52" style="animation-duration:3.4s;animation-delay:-1.7s"/><circle class="d" cx="170" cy="19.8" r="1.03" style="animation-duration:3.2s;animation-delay:-3.3s"/><circle class="d" cx="170" cy="12.7" r="0.98" style="animation-duration:2.8s;animation-delay:-3.4s"/><circle class="d" cx="170" cy="23.3" r="0.56" style="animation-duration:2.4s;animation-delay:-0.8s"/><circle class="d" cx="170" cy="25.2" r="0.76" style="animation-duration:3.1s;animation-delay:-1.1s"/><circle class="d" cx="170" cy="15.2" r="0.73" style="animation-duration:2.7s;animation-delay:-2.1s"/><circle class="d" cx="170" cy="16.9" r="1.04" style="animation-duration:3.2s;animation-delay:-3.3s"/><circle class="d" cx="170" cy="22.8" r="1.09" style="animation-duration:3.1s;animation-delay:-0.6s"/><rect width="360" height="30" fill="url(#grain)"/></g></svg>`
@@ -166,30 +166,30 @@ async function setHandoffCard($: EngineInterface, kind: HandoffCard['kind'], ful
 }
 
 // The newest reply's text, so the warning card goes under its last block and nowhere else.
-const lastAnswer = atom({ plugin: 'effortless', key: 'lastAnswer' } as const, '')
-const lastTurn = atom({ plugin: 'effortless', key: 'lastTurn' } as const, null)
+const lastAnswer = atom({ plugin: 'effortshift', key: 'lastAnswer' } as const, '')
+const lastTurn = atom({ plugin: 'effortshift', key: 'lastTurn' } as const, null)
 // The weighted tokens of the main thread's requests since the prompt; kept in lastTurn when the turn ends.
 let turnCost = 0
-const swampHiddenAt = atom({ plugin: 'effortless', key: 'swampHiddenAt' } as const, null)
+const swampHiddenAt = atom({ plugin: 'effortshift', key: 'swampHiddenAt' } as const, null)
 // The first-run setup is not done: the footer offers "Setup".
-const setupPending = atom({ plugin: 'effortless', key: 'setupPending' } as const, false)
+const setupPending = atom({ plugin: 'effortshift', key: 'setupPending' } as const, false)
 // Why the judge the person picked is failing (Haiku stands in), or null when it works.
-// The effortless settings panel is open above the prompt.
-const settingsOpen = atom({ plugin: 'effortless', key: 'settingsOpen' } as const, false)
+// The effortshift settings panel is open above the prompt.
+const settingsOpen = atom({ plugin: 'effortshift', key: 'settingsOpen' } as const, false)
 // What was changed in the panel and not saved yet, by field; Save applies it all, the cross drops it.
 // The user and plugin skills, read when the settings panel opens.
-const installedSkills = atom({ plugin: 'effortless', key: 'installedSkills' } as const, [])
-const settingsDraft = atom({ plugin: 'effortless', key: 'settingsDraft' } as const, {})
-const judgeDown = atom({ plugin: 'effortless', key: 'judgeDown' } as const, null)
+const installedSkills = atom({ plugin: 'effortshift', key: 'installedSkills' } as const, [])
+const settingsDraft = atom({ plugin: 'effortshift', key: 'settingsDraft' } as const, {})
+const judgeDown = atom({ plugin: 'effortshift', key: 'judgeDown' } as const, null)
 // Which part of the settings panel is open: null for the cards.
 type SettingsCard = 'effort' | 'model' | 'judge' | 'handoff' | 'show'
-const settingsCard = atom({ plugin: 'effortless', key: 'settingsCard' } as const, null)
+const settingsCard = atom({ plugin: 'effortshift', key: 'settingsCard' } as const, null)
 /** The settings panel's parts: a card each on the overview, and what the part is for, said once it is open. */
 const CARDS: readonly { id: SettingsCard; title: string; about: string }[] = [
   { id: 'effort', title: 'Effort', about: 'How hard Claude thinks. The slider tips close calls; Min and Max are hard limits.' },
   { id: 'model', title: 'Model', about: "Whether a simple prompt may run on a cheaper model, and which model writes a compaction." },
   { id: 'handoff', title: 'Handoff & alerts', about: 'The full handoff skill, when to suggest compacting, and which alerts show.' },
-  { id: 'show', title: 'Customize', about: 'How effortless looks and which parts it shows. Uninstall removes it.' },
+  { id: 'show', title: 'Customize', about: 'How effortshift looks and which parts it shows. Uninstall removes it.' },
   { id: 'judge', title: 'Judge', about: 'Haiku judges prompts and handoffs. Add Jev for quicker effort calls. Test checks it answers.' },
 ]
 // The Model card: the two ways to run. Effort follows the judge in both.
@@ -199,29 +199,29 @@ const MODEL_CHOICES = [
 ] as const
 const BIAS_WORDS = ['Cheapest', 'Cheaper', 'Balanced', 'Smarter', 'Smartest'] as const
 // The settings panel's judge test: running, or what it found. Null before a test and once the panel closes.
-const judgeTest = atom({ plugin: 'effortless', key: 'judgeTest' } as const, null)
+const judgeTest = atom({ plugin: 'effortshift', key: 'judgeTest' } as const, null)
 // The judge-down band was closed for this reason; a new reason shows it again.
-const judgeDownHidden = atom({ plugin: 'effortless', key: 'judgeDownHidden' } as const, null)
+const judgeDownHidden = atom({ plugin: 'effortshift', key: 'judgeDownHidden' } as const, null)
 // A usage limit is close: which window, how much is used, when it resets. Null below the line.
-const hot = atom({ plugin: 'effortless', key: 'hot' } as const, null)
+const hot = atom({ plugin: 'effortshift', key: 'hot' } as const, null)
 // The running-hot band was closed at this many percent; it returns ten points later or in a new window.
 // The running-hot band closed with its cross: in which window and how full. Kept in the store too, so a new chat keeps it closed.
-const hotHidden = atom({ plugin: 'effortless', key: 'hotHidden' } as const, null as HotClosed | null)
+const hotHidden = atom({ plugin: 'effortshift', key: 'hotHidden' } as const, null as HotClosed | null)
 // The agent panel: this chat's subagents, and the card opened in it (hooks/agents.tsx).
-const agentsState = atom({ plugin: 'effortless', key: 'agents' } as const, [])
-const agentsOpen = atom({ plugin: 'effortless', key: 'agentsOpen' } as const, null)
+const agentsState = atom({ plugin: 'effortshift', key: 'agents' } as const, [])
+const agentsOpen = atom({ plugin: 'effortshift', key: 'agentsOpen' } as const, null)
 // The panel's map: the files touched, the main chat's own steps, the module opened in its list.
-const agentFiles = atom({ plugin: 'effortless', key: 'agentFiles' } as const, [])
-const agentSteps = atom({ plugin: 'effortless', key: 'agentSteps' } as const, null)
-const agentsModule = atom({ plugin: 'effortless', key: 'agentsModule' } as const, null)
+const agentFiles = atom({ plugin: 'effortshift', key: 'agentFiles' } as const, [])
+const agentSteps = atom({ plugin: 'effortshift', key: 'agentSteps' } as const, null)
+const agentsModule = atom({ plugin: 'effortshift', key: 'agentsModule' } as const, null)
 // Save mode: Auto picks at most medium until this time (ms), when the limit resets.
-const saveUntil = atom({ plugin: 'effortless', key: 'saveUntil' } as const, null)
-const isColdHidden = atom({ plugin: 'effortless', key: 'isColdHidden' } as const, false)
+const saveUntil = atom({ plugin: 'effortshift', key: 'saveUntil' } as const, null)
+const isColdHidden = atom({ plugin: 'effortshift', key: 'isColdHidden' } as const, false)
 // The setup guide above the prompt: which step it shows, or null when it is closed.
-const setupStep = atom({ plugin: 'effortless', key: 'setupStep' } as const, null)
+const setupStep = atom({ plugin: 'effortshift', key: 'setupStep' } as const, null)
 // What was picked in the setup guide and not saved yet: it is saved in one go at Done or ✕. Each saved setting reloads
 // the plugin, and the app says so in the chat, so a save per click filled the chat with notices.
-const setupDraft = atom({ plugin: 'effortless', key: 'setupDraft' } as const, {})
+const setupDraft = atom({ plugin: 'effortshift', key: 'setupDraft' } as const, {})
 
 // The band above the prompt when the cache has gone cold: an icy gradient with snowflakes drifting down.
 const FROST_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="440" height="64" viewBox="0 0 360 30" preserveAspectRatio="xMaxYMid slice"><style>:root{color-scheme:light dark}html,body{margin:0}svg{background:transparent;display:block}.f path{stroke:#eaf6ff;stroke-width:.5;stroke-linecap:round;fill:none}.f{transform-box:fill-box;transform-origin:center;animation:spin linear infinite;opacity:.75}@keyframes spin{to{transform:rotate(360deg)}}.fr{stroke:#dff1ff;stroke-width:.4;fill:none;stroke-linecap:round;opacity:.5}.gl{fill:#fff;opacity:0;animation:tw 3.6s ease-in-out infinite}@keyframes tw{0%,70%,100%{opacity:0}80%{opacity:.9}}.br{animation:br 6s ease-in-out infinite}@keyframes br{0%,100%{opacity:.85}50%{opacity:1}}</style><defs><linearGradient id="ice" x1="0" x2="1"><stop offset=".43" stop-color="#5aa9e6" stop-opacity="0"/><stop offset=".62" stop-color="#5aa9e6" stop-opacity=".12"/><stop offset=".85" stop-color="#8fd0ff" stop-opacity=".28"/><stop offset="1" stop-color="#cdeaff" stop-opacity=".42"/></linearGradient><radialGradient id="cold" cx="330" cy="15" r="60" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e9f6ff" stop-opacity=".22"/><stop offset="1" stop-color="#e9f6ff" stop-opacity="0"/></radialGradient><linearGradient id="rime" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset=".22" stop-color="#fff" stop-opacity="0"/><stop offset=".78" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".15"/></linearGradient><linearGradient id="fade" x1="0" x2="1"><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#fff" stop-opacity="1"/></linearGradient><mask id="m"><rect width="360" height="30" fill="url(#fade)"/></mask><pattern id="grain" width="2" height="2" patternUnits="userSpaceOnUse"><rect width=".6" height=".6" fill="#fff" fill-opacity=".07"/></pattern></defs><g mask="url(#m)"><rect class="br" width="360" height="30" fill="url(#ice)"/><rect width="360" height="30" fill="url(#cold)"/><rect width="360" height="30" fill="url(#rime)"/><rect width="360" height="30" fill="url(#grain)"/><path class="fr" d="M360.0 3.0L354.1 2.1M354.1 2.1L349.8 1.8M349.8 1.8L346.7 2.1M346.7 2.1L344.4 2.2M348.2 1.9L347.5 3.2M351.9 1.9L350.3 3.1M350.3 3.1L349.2 3.8M357.0 2.5L355.1 0.6M355.1 0.6L353.5 -0.5M353.5 -0.5L352.4 -1.4M356.1 1.6L354.9 1.4M360.0 27.0L354.1 27.9M354.1 27.9L349.8 28.5M349.8 28.5L346.9 29.6M346.9 29.6L345.0 30.8M348.3 29.0L347.1 28.4M351.9 28.2L350.9 29.9M350.9 29.9L350.3 31.1M357.0 27.5L355.2 29.4M355.2 29.4L353.9 30.9M353.9 30.9L352.8 31.8M356.1 28.4L354.9 28.5M350.0 30.0L348.8 26.2M348.8 26.2L347.9 23.4M347.9 23.4L347.6 21.4M347.6 21.4L347.7 19.9M348.4 24.8L348.9 23.6M349.4 28.1L350.2 26.5M350.2 26.5L350.8 25.3M352.0 0.0L351.0 3.9M351.0 3.9L350.4 6.7M350.4 6.7L349.6 8.6M349.6 8.6L349.0 10.0M350.7 5.3L349.6 5.9M351.5 1.9L352.2 3.6M352.2 3.6L352.9 4.7"/><circle class="gl" cx="228" cy="26" r="0.5" style="animation-delay:0s"/><circle class="gl" cx="205" cy="4" r="0.45" style="animation-delay:1.3s"/><circle class="gl" cx="186" cy="26" r="0.4" style="animation-delay:2.4s"/><circle class="gl" cx="262" cy="6" r="0.5" style="animation-delay:0.7s"/><circle class="gl" cx="300" cy="25" r="0.45" style="animation-delay:3.1s"/><circle class="gl" cx="330" cy="6" r="0.5" style="animation-delay:1.9s"/><g class="f" style="animation-duration:10s;animation-delay:0s"><path d="M236.0 9.0L236.0 13.2M236.0 10.9L237.0 11.8M236.0 10.9L235.0 11.8M236.0 11.9L236.7 12.6M236.0 11.9L235.3 12.6M236.0 9.0L232.4 11.1M234.4 9.9L234.0 11.2M234.4 9.9L233.1 9.6M233.5 10.5L233.2 11.4M233.5 10.5L232.6 10.2M236.0 9.0L232.4 6.9M234.4 8.1L233.1 8.4M234.4 8.1L234.0 6.8M233.5 7.5L232.6 7.8M233.5 7.5L233.2 6.6M236.0 9.0L236.0 4.8M236.0 7.1L235.0 6.2M236.0 7.1L237.0 6.2M236.0 6.1L235.3 5.4M236.0 6.1L236.7 5.4M236.0 9.0L239.6 6.9M237.6 8.1L238.0 6.8M237.6 8.1L238.9 8.4M238.5 7.5L238.8 6.6M238.5 7.5L239.4 7.8M236.0 9.0L239.6 11.1M237.6 9.9L238.9 9.6M237.6 9.9L238.0 11.2M238.5 10.5L239.4 10.2M238.5 10.5L238.8 11.4"/></g><g class="f" style="animation-duration:12s;animation-delay:-4s"><path d="M214.0 21.0L214.0 24.2M214.0 22.4L214.7 23.2M214.0 22.4L213.3 23.2M214.0 23.2L214.5 23.7M214.0 23.2L213.5 23.7M214.0 21.0L211.2 22.6M212.8 21.7L212.5 22.7M212.8 21.7L211.8 21.5M212.1 22.1L211.9 22.8M212.1 22.1L211.4 21.9M214.0 21.0L211.2 19.4M212.8 20.3L211.8 20.5M212.8 20.3L212.5 19.3M212.1 19.9L211.4 20.1M212.1 19.9L211.9 19.2M214.0 21.0L214.0 17.8M214.0 19.6L213.3 18.8M214.0 19.6L214.7 18.8M214.0 18.8L213.5 18.3M214.0 18.8L214.5 18.3M214.0 21.0L216.8 19.4M215.2 20.3L215.5 19.3M215.2 20.3L216.2 20.5M215.9 19.9L216.1 19.2M215.9 19.9L216.6 20.1M214.0 21.0L216.8 22.6M215.2 21.7L216.2 21.5M215.2 21.7L215.5 22.7M215.9 22.1L216.6 21.9M215.9 22.1L216.1 22.8"/></g><g class="f" style="animation-duration:11s;animation-delay:-7s"><path d="M194.0 8.0L194.0 10.6M194.0 9.2L194.6 9.8M194.0 9.2L193.4 9.8M194.0 9.8L194.4 10.2M194.0 9.8L193.6 10.2M194.0 8.0L191.7 9.3M193.0 8.6L192.8 9.4M193.0 8.6L192.2 8.4M192.4 8.9L192.3 9.5M192.4 8.9L191.9 8.8M194.0 8.0L191.7 6.7M193.0 7.4L192.2 7.6M193.0 7.4L192.8 6.6M192.4 7.1L191.9 7.2M192.4 7.1L192.3 6.5M194.0 8.0L194.0 5.4M194.0 6.8L193.4 6.2M194.0 6.8L194.6 6.2M194.0 6.2L193.6 5.8M194.0 6.2L194.4 5.8M194.0 8.0L196.3 6.7M195.0 7.4L195.2 6.6M195.0 7.4L195.8 7.6M195.6 7.1L195.7 6.5M195.6 7.1L196.1 7.2M194.0 8.0L196.3 9.3M195.0 8.6L195.8 8.4M195.0 8.6L195.2 9.4M195.6 8.9L196.1 8.8M195.6 8.9L195.7 9.5"/></g><g class="f" style="animation-duration:13s;animation-delay:-2s"><path d="M176.0 19.0L176.0 21.2M176.0 20.0L176.5 20.5M176.0 20.0L175.5 20.5M176.0 20.5L176.3 20.9M176.0 20.5L175.7 20.9M176.0 19.0L174.1 20.1M175.1 19.5L175.0 20.2M175.1 19.5L174.5 19.3M174.7 19.8L174.5 20.2M174.7 19.8L174.2 19.6M176.0 19.0L174.1 17.9M175.1 18.5L174.5 18.7M175.1 18.5L175.0 17.8M174.7 18.2L174.2 18.4M174.7 18.2L174.5 17.8M176.0 19.0L176.0 16.8M176.0 18.0L175.5 17.5M176.0 18.0L176.5 17.5M176.0 17.5L175.7 17.1M176.0 17.5L176.3 17.1M176.0 19.0L177.9 17.9M176.9 18.5L177.0 17.8M176.9 18.5L177.5 18.7M177.3 18.2L177.5 17.8M177.3 18.2L177.8 18.4M176.0 19.0L177.9 20.1M176.9 19.5L177.5 19.3M176.9 19.5L177.0 20.2M177.3 19.8L177.8 19.6M177.3 19.8L177.5 20.2"/></g><g class="f" style="animation-duration:14s;animation-delay:-9s"><path d="M252.0 22.0L252.0 24.4M252.0 23.1L252.5 23.6M252.0 23.1L251.5 23.6M252.0 23.7L252.4 24.1M252.0 23.7L251.6 24.1M252.0 22.0L249.9 23.2M251.1 22.5L250.9 23.3M251.1 22.5L250.3 22.3M250.5 22.8L250.4 23.4M250.5 22.8L250.0 22.7M252.0 22.0L249.9 20.8M251.1 21.5L250.3 21.7M251.1 21.5L250.9 20.7M250.5 21.2L250.0 21.3M250.5 21.2L250.4 20.6M252.0 22.0L252.0 19.6M252.0 20.9L251.5 20.4M252.0 20.9L252.5 20.4M252.0 20.3L251.6 19.9M252.0 20.3L252.4 19.9M252.0 22.0L254.1 20.8M252.9 21.5L253.1 20.7M252.9 21.5L253.7 21.7M253.5 21.2L253.6 20.6M253.5 21.2L254.0 21.3M252.0 22.0L254.1 23.2M252.9 22.5L253.7 22.3M252.9 22.5L253.1 23.3M253.5 22.8L254.0 22.7M253.5 22.8L253.6 23.4"/></g></g></svg>`
@@ -253,7 +253,7 @@ let DASH_EDGE = '#2a2a2f'
 /** The settings title's word in the website hero's style: crisp, going soft and grainy at its bottom right (a radial
  * mask fades the crisp copy out there and a copy through the site's #grainy filter takes over). The app gives the image
  * the band's font. */
-const SETTINGS_TITLE = `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="28" viewBox="0 0 92 28"><defs><radialGradient id="c" cx="1" cy="1" r=".75" gradientTransform="matrix(.7 0 0 2.3 .3 -1.3)"><stop offset=".35" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient><radialGradient id="s" cx=".9" cy=".85" r=".55" gradientTransform="matrix(.7 0 0 2.3 .27 -1.1)"><stop offset=".4" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient><mask id="mc"><rect width="92" height="28" fill="url(#c)"/></mask><mask id="ms"><rect width="92" height="28" fill="url(#s)"/></mask><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G" result="moved"/><feGaussianBlur in="moved" stdDeviation="0.35" result="soft"/><feComponentTransfer in="noise" result="dots"><feFuncA type="discrete" tableValues="0 1 1 1 1"/></feComponentTransfer><feComposite in="soft" in2="dots" operator="in"/></filter></defs><g font-size="21" font-weight="600" letter-spacing="-.5"><text x="1" y="20" fill="#ffffff" mask="url(#mc)">effortless</text><g mask="url(#ms)"><text x="1" y="20" fill="#ffffff" filter="url(#g)">effortless</text></g></g></svg>`
+const SETTINGS_TITLE = `<svg xmlns="http://www.w3.org/2000/svg" width="92" height="28" viewBox="0 0 92 28"><defs><radialGradient id="c" cx="1" cy="1" r=".75" gradientTransform="matrix(.7 0 0 2.3 .3 -1.3)"><stop offset=".35" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient><radialGradient id="s" cx=".9" cy=".85" r=".55" gradientTransform="matrix(.7 0 0 2.3 .27 -1.1)"><stop offset=".4" stop-color="#fff"/><stop offset="1" stop-color="#000"/></radialGradient><mask id="mc"><rect width="92" height="28" fill="url(#c)"/></mask><mask id="ms"><rect width="92" height="28" fill="url(#s)"/></mask><filter id="g" x="-20%" y="-40%" width="140%" height="180%"><feTurbulence type="fractalNoise" baseFrequency="1.4" numOctaves="1" seed="7" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="2.5" xChannelSelector="R" yChannelSelector="G" result="moved"/><feGaussianBlur in="moved" stdDeviation="0.35" result="soft"/><feComponentTransfer in="noise" result="dots"><feFuncA type="discrete" tableValues="0 1 1 1 1"/></feComponentTransfer><feComposite in="soft" in2="dots" operator="in"/></filter></defs><g font-size="21" font-weight="600" letter-spacing="-.5"><text x="1" y="20" fill="#ffffff" mask="url(#mc)">effortshift</text><g mask="url(#ms)"><text x="1" y="20" fill="#ffffff" filter="url(#g)">effortshift</text></g></g></svg>`
 /** The mark as the settings bar shows it: big, tilted and faint, cut off by the bar. */
 const SETTINGS_MARK = MARK_SVG.replace('<g mask=', '<g opacity=".2" transform="rotate(9 50 50)" mask=')
 // The dashboard's mark (see dash-mark): its size, and its look with Auto off.
@@ -290,14 +290,14 @@ async function introShows($: EngineInterface, kind: string): Promise<boolean> {
 // The mark beside a card's title, sized to one line of text.
 const TITLE_MARK_SIZE = 16
 
-/** A card's title with the effortless mark where the ✦ stood; the ✦ stays where the surface draws no images. */
+/** A card's title with the effortshift mark where the ✦ stood; the ✦ stays where the surface draws no images. */
 function markTitle(els: { Box: unknown; Text: unknown; Svg?: unknown }, key: string, color: string, title: string, mark = MARK_SVG) {
   const { Box: B, Text: T, Svg: S } = els as unknown as { Box: (p: Record<string, unknown>) => unknown; Text: (p: Record<string, unknown>) => unknown; Svg?: (p: Record<string, unknown>) => unknown }
   if (!S) return <T key={key} color={color} bold wrap="truncate">{title}</T>
   return (
     <B key={key} flexDirection="row" alignItems="center" flexShrink={1} minWidth={0}>
       <B flexShrink={0} marginRight={1} alignItems="center">
-        <S source={mark} alt="effortless" width={TITLE_MARK_SIZE} height={TITLE_MARK_SIZE} />
+        <S source={mark} alt="effortshift" width={TITLE_MARK_SIZE} height={TITLE_MARK_SIZE} />
       </B>
       <T color={color} bold wrap="truncate">{title.replace(/^✦ /, '')}</T>
     </B>
@@ -443,12 +443,12 @@ const JEV_TASK =
   'question about how to do something that needs no tools is low. "think hard", "ultrathink" or "be thorough" means ' +
   'at least high; "quick question" means low.'
 
-/** The skill or custom command a typed "/name args" runs, or nothing for the app's own commands and effortless's. */
+/** The skill or custom command a typed "/name args" runs, or nothing for the app's own commands and effortshift's. */
 async function typedSkill($: EngineInterface, text: string): Promise<{ name: string; description: string } | undefined> {
   const name = text.trim().slice(1).split(/\s+/)[0]
   if (!name) return undefined
   const found = (await $.command.list().catch(() => [])).find(c => c.name === name)
-  if (!found || !['user', 'plugin', 'mcp'].includes(found.source) || found.plugin === 'effortless') return undefined
+  if (!found || !['user', 'plugin', 'mcp'].includes(found.source) || found.plugin === 'effortshift') return undefined
   return { name, description: found.description ?? '' }
 }
 
@@ -586,7 +586,7 @@ function warnJudge($: EngineInterface, reason: string) {
   void update($, judgeDown, () => reason).then(() => $.ui.invalidate('ui.render'))
   if (warned.has(reason)) return
   warned.add(reason)
-  $.ui.toast(`effortless: ${reason}. Haiku judges for now.`)
+  $.ui.toast(`effortshift: ${reason}. Haiku judges for now.`)
 }
 
 /** Which judge the person picked in the plugin's settings, and what it needs. */
@@ -618,7 +618,7 @@ export type JudgeConfig = {
   modelAuto: 'on' | 'off'
   /** on: every subagent the chat sends off gets an effort picked by the judge before it starts. */
   helpers: 'on' | 'off'
-  /** The accent colour of everything effortless draws: the brand violet, Claude orange or cherry-blossom rose. */
+  /** The accent colour of everything effortshift draws: the brand violet, Claude orange or cherry-blossom rose. */
   theme: ThemeName
   /** auto: light when Claude Code's own theme is light. dark and light fix it. */
   appearance: 'auto' | 'dark' | 'light'
@@ -627,7 +627,7 @@ export type JudgeConfig = {
 /** The swamp thresholds the settings offer, in percent of the context window. */
 export const SWAMP_STEPS = [10, 20, 30, 40, 50, 60, 70, 80] as const
 
-/** The parts of effortless a person can switch off: the footer's (setup) and the progress bar's (setup, settings).
+/** The parts of effortshift a person can switch off: the footer's (setup) and the progress bar's (setup, settings).
  * The context (swamp), running-low (hot) and cold-cache alerts can be switched off for good in Customize; the judge-down
  * alert always shows. Each alert also has its own ✕. */
 export const HIDEABLE = ['handoff', 'timer', 'reason', 'progress', 'sounds', 'swamp', 'hot', 'cold'] as const
@@ -881,7 +881,7 @@ async function checkHandoff($: EngineInterface, next: string) {
   }
 }
 
-// The judge benchmark (/effortless bench): labelled prompts in bench/judge-cases.json, each run through the same
+// The judge benchmark (/effortshift bench): labelled prompts in bench/judge-cases.json, each run through the same
 // pipeline a real prompt takes (a short follow-up keeps the current effort, anything else goes to a judge).
 export type BenchCase = { id: string; kind: string; holdout?: boolean; current: Pick; context?: string; message: string; ok: Effort[] }
 export type BenchAnswer = { id: string; judge: string; effort?: Effort; by?: string; why?: string; sure?: number; model?: ModelKey; ms: number; tokens: number }
@@ -1026,8 +1026,8 @@ async function sessionModel($: EngineInterface): Promise<ModelKey> {
 }
 
 
-// Proof log: every verdict, /effort and request effort, written to EFFORTLESS_LOG, or to
-// %TEMP%/effortless-proof.log while the mod is loaded from a dev-mods folder. Off otherwise.
+// Proof log: every verdict, /effort and request effort, written to EFFORTSHIFT_LOG, or to
+// %TEMP%/effortshift-proof.log while the mod is loaded from a dev-mods folder. Off otherwise.
 const proofLines: string[] = []
 // An environment variable does not change while the session runs, so each one is asked for once. The
 // engine wants the name spelled out in every $.env.get call, hence one small getter per variable.
@@ -1040,10 +1040,10 @@ let askJevUrl: EnvAsk
 let askJevKey: EnvAsk
 let askUserProfile: EnvAsk
 let askHome: EnvAsk
-const envLog = ($: EngineInterface) => (askLog = askLog ?? $.env.get('EFFORTLESS_LOG'))
+const envLog = ($: EngineInterface) => (askLog = askLog ?? $.env.get('EFFORTSHIFT_LOG'))
 const envTemp = ($: EngineInterface) => (askTemp = askTemp ?? $.env.get('TEMP'))
 const envTmpdir = ($: EngineInterface) => (askTmpdir = askTmpdir ?? $.env.get('TMPDIR'))
-const envModelUi = ($: EngineInterface) => (askModelUi = askModelUi ?? $.env.get('EFFORTLESS_MODEL_UI'))
+const envModelUi = ($: EngineInterface) => (askModelUi = askModelUi ?? $.env.get('EFFORTSHIFT_MODEL_UI'))
 const envJevUrl = ($: EngineInterface) => (askJevUrl = askJevUrl ?? $.env.get('JEV_URL'))
 const envJevKey = ($: EngineInterface) => (askJevKey = askJevKey ?? $.env.get('TYPESAFE_API_KEY'))
 const envUserProfile = ($: EngineInterface) => (askUserProfile = askUserProfile ?? $.env.get('USERPROFILE'))
@@ -1054,7 +1054,7 @@ async function proofPath($: EngineInterface): Promise<string | undefined> {
   if (named) return named
   if (!$.plugin.root.replace(/\\/g, '/').includes('/dev-mods/')) return undefined
   const tmp = (await envTemp($)) ?? (await envTmpdir($)) ?? '/tmp'
-  return `${tmp}/effortless-proof.log`
+  return `${tmp}/effortshift-proof.log`
 }
 async function proof($: EngineInterface, line: string) {
   const path = await proofPath($).catch(() => undefined)
@@ -1069,7 +1069,7 @@ async function proof($: EngineInterface, line: string) {
 let engineEffort: string | undefined
 // The pick was carried over from the last chat (the store), not made in this one: the app's effort may overrule it.
 let pickCarried = false
-// The last main-chat request, for /effortless debug: what the app asked for and what the mod sent instead, if anything.
+// The last main-chat request, for /effortshift debug: what the app asked for and what the mod sent instead, if anything.
 let lastRequest: { index: number; appModel: string; appEffort: unknown; model: string; effort: unknown; at: number } | null = null
 // The slash command this mod last typed into the prompt box.
 let lastTyped = ''
@@ -1209,7 +1209,7 @@ export function mostlyCached(usage: unknown): boolean {
 }
 
 /** Save mode on or off: Auto stays at medium or below until the limit resets. The hot band's button and
- *  /effortless save. Says what it did. */
+ *  /effortshift save. Says what it did. */
 async function toggleSave($: EngineInterface): Promise<string> {
   const saving = (await read($, saveUntil)) !== null
   const heat = await read($, hot)
@@ -1291,7 +1291,7 @@ async function restoreCache($: EngineInterface) {
 }
 const rememberCache = ($: EngineInterface) => update($, cacheMemo, () => ({ expires: cacheExpires, ttl: cacheTtl, last: lastResponseAt }))
 /** Writes the minutes left when they changed; the session's one timer (started in session.start) calls it. */
-// What /effortless swamp shows as a test: a swamped chat's context.
+// What /effortshift swamp shows as a test: a swamped chat's context.
 const SWAMP_TOKENS = 150_000
 // Closed, the band stays away until the context has grown this much more.
 const SWAMP_REGROW = 50_000
@@ -1399,12 +1399,12 @@ async function setTurnBusy($: EngineInterface, busy: boolean) {
   if (was !== busy) $.ui.invalidate('ui.render')
 }
 
-/** A context share to draw the bars with instead of the real one, from ~/.claude/effortless-preview.json
+/** A context share to draw the bars with instead of the real one, from ~/.claude/effortshift-preview.json
  * ({"contextPercent": 45}), so how a level looks can be checked on screen without filling a chat. No file, no change. */
 async function previewPercent($: EngineInterface): Promise<number | undefined> {
   const home = (await envUserProfile($)) ?? (await envHome($))
   if (!home) return undefined
-  const text = await $.fs.read(`${home}/.claude/effortless-preview.json`).catch(() => '')
+  const text = await $.fs.read(`${home}/.claude/effortshift-preview.json`).catch(() => '')
   if (!text) return undefined
   try {
     const n = Number((JSON.parse(text) as { contextPercent?: unknown }).contextPercent)
@@ -1476,7 +1476,7 @@ async function cacheMinutes($: EngineInterface): Promise<number> {
 /** A response came back: the cache is warm again for its whole lifetime, and the countdown restarts. */
 let usageLogged = false
 let lastResponseAt: number | undefined
-// Main-conversation replies this copy has seen, for /effortless debug.
+// Main-conversation replies this copy has seen, for /effortshift debug.
 let repliesSeen = 0
 async function cacheTouched($: EngineInterface, usage: unknown) {
   const now = await $.clock.now()
@@ -1523,7 +1523,7 @@ async function compactCold($: EngineInterface, note = '') {
   } catch (error) {
     const why = error instanceof Error ? error.message : String(error)
     void proof($, `compact failed: ${why}`)
-    $.ui.toast(`effortless: compact failed: ${why.slice(0, 140)}`)
+    $.ui.toast(`effortshift: compact failed: ${why.slice(0, 140)}`)
   } finally {
     await update($, isCompacting, () => false)
     // Complete, or gone when it failed (the toast says why).
@@ -1666,7 +1666,7 @@ export function handoffWhat(choice: HandoffChoice, skill: string): { by: string;
   return { by, then }
 }
 
-/** What a handoff fork came to, in a few words for /effortless debug: its reason when it wrote nothing. */
+/** What a handoff fork came to, in a few words for /effortshift debug: its reason when it wrote nothing. */
 export function forkOutcome(result: unknown, ms: number): string {
   const took = `${(ms / 1000).toFixed(1)}s`
   if (result instanceof Error) return `threw: ${result.message.slice(0, 120)} (${took})`
@@ -1718,11 +1718,11 @@ async function writeHandoff($: EngineInterface) {
       return
     }
     // Nothing to fork (no reply yet) or the fork failed: write it as a turn, as before, and say why.
-    if (!outcome.startsWith('nothing-to-fork')) $.ui.toast(`effortless: the fork wrote no handoff (${outcome}); writing it as a turn`)
+    if (!outcome.startsWith('nothing-to-fork')) $.ui.toast(`effortshift: the fork wrote no handoff (${outcome}); writing it as a turn`)
     await $.prompt.submit({ text: HANDOFF_PROMPT })
   } catch (error) {
     await update($, handoffStage, () => null)
-    $.ui.toast(`effortless: handoff failed: ${(error instanceof Error ? error.message : String(error)).slice(0, 140)}`)
+    $.ui.toast(`effortshift: handoff failed: ${(error instanceof Error ? error.message : String(error)).slice(0, 140)}`)
   }
 }
 
@@ -1741,10 +1741,10 @@ export async function finishHandoff($: EngineInterface) {
       const copied = await $.ui.copy({ text: message }).catch(() => ({ isCopied: false as const }))
       // Under the reply already there, so the next reply takes it away.
       await setHandoffCard($, 'copied', handoffFull, true)
-      if (copied.isCopied) $.ui.toast('effortless: handoff copied. Paste it into a new chat.')
+      if (copied.isCopied) $.ui.toast('effortshift: handoff copied. Paste it into a new chat.')
       else {
         await $.prompt.fill({ text: message, mode: 'replace' })
-        $.ui.toast('effortless: the clipboard refused, so the handoff is in the prompt box')
+        $.ui.toast('effortshift: the clipboard refused, so the handoff is in the prompt box')
       }
       return
     }
@@ -1755,7 +1755,7 @@ export async function finishHandoff($: EngineInterface) {
     await $.prompt.submit({ text: handoffMessage(text, handoffThen, handoffFull ? config.handoffSkill : undefined) })
   } catch (error) {
     await update($, handoffCard, () => null)
-    $.ui.toast(`effortless: handoff failed: ${(error instanceof Error ? error.message : String(error)).slice(0, 140)}`)
+    $.ui.toast(`effortshift: handoff failed: ${(error instanceof Error ? error.message : String(error)).slice(0, 140)}`)
   } finally {
     handoffDriving = false
     await update($, handoffStage, () => null)
@@ -1768,13 +1768,13 @@ async function loadInstalledSkills($: EngineInterface) {
   const installed = await $.command.list().catch(() => [])
   // At most 25, handoff-like ones first: a picker with hundreds of options is more than the slot takes.
   const names = [...new Set(installed.filter(c => c.source === 'user' || c.source === 'plugin').map(c => c.name))]
-    .filter(name => !name.startsWith('effortless'))
+    .filter(name => !name.startsWith('effortshift'))
     .sort((a, b) => Number(!/handoff/i.test(a)) - Number(!/handoff/i.test(b)) || a.localeCompare(b))
     .slice(0, 25)
   await update($, installedSkills, () => names)
 }
 
-/** Opens the effortless settings panel above the prompt: the app does not let a plugin open its /plugin dialog. */
+/** Opens the effortshift settings panel above the prompt: the app does not let a plugin open its /plugin dialog. */
 async function openPluginSettings($: EngineInterface) {
   await loadInstalledSkills($)
   await update($, settingsOpen, () => true)
@@ -1811,7 +1811,7 @@ const SETTING_FIELDS = {
 
 async function saveSetting($: EngineInterface, field: keyof typeof SETTING_FIELDS, value: string) {
   const { deny } = await $.config
-    .set({ key: `effortless.${SETTING_FIELDS[field]}`, value })
+    .set({ key: `effortshift.${SETTING_FIELDS[field]}`, value })
     .catch((error: unknown) => ({ deny: error instanceof Error ? error.message : String(error) }))
   // Some Claude Code builds have no /config row for a plugin's settings and refuse the write: the choice is kept in
   // the mod's own store then, and read back at the next session start. A write that lands clears that copy.
@@ -1821,7 +1821,7 @@ async function saveSetting($: EngineInterface, field: keyof typeof SETTING_FIELD
     .set('savedSettings', deny ? { ...kept, [SETTING_FIELDS[field]]: value } : others)
     .then(() => true)
     .catch(() => false)
-  if (deny && !stored) $.ui.toast(`effortless: could not save ${field}: ${String(deny).slice(0, 120)}`)
+  if (deny && !stored) $.ui.toast(`effortshift: could not save ${field}: ${String(deny).slice(0, 120)}`)
   const raw: Record<string, unknown> = {
     judge: config.judge,
     effortBias: String(config.bias),
@@ -1895,7 +1895,7 @@ async function saveJevKey($: EngineInterface, key: string, setJudge = true) {
   if (!clean) return
   const home = (await envUserProfile($)) ?? (await envHome($))
   if (!home) {
-    $.ui.toast('effortless: no home folder found to save the key in.')
+    $.ui.toast('effortshift: no home folder found to save the key in.')
     return
   }
   const path = `${home}/.config/jev/.env`
@@ -1903,7 +1903,7 @@ async function saveJevKey($: EngineInterface, key: string, setJudge = true) {
   try {
     await $.fs.write(path, withJevKey(typeof before === 'string' ? before : '', clean))
   } catch (error) {
-    $.ui.toast(`effortless: could not save the key: ${(error instanceof Error ? error.message : String(error)).slice(0, 120)}`)
+    $.ui.toast(`effortshift: could not save the key: ${(error instanceof Error ? error.message : String(error)).slice(0, 120)}`)
     return
   }
   await $.store.set('keyFromFile', true)
@@ -1912,7 +1912,7 @@ async function saveJevKey($: EngineInterface, key: string, setJudge = true) {
   if (setJudge && config.judge !== 'jev') await saveSetting($, 'judge', 'jev')
   await update($, judgeDown, () => null)
   warned.clear()
-  $.ui.toast('effortless: key saved. Jev judges from the next message.')
+  $.ui.toast('effortshift: key saved. Jev judges from the next message.')
   $.ui.invalidate('ui.render')
 }
 
@@ -2050,11 +2050,11 @@ async function pickJudge($: EngineInterface, choice: 'haiku' | 'jev') {
   await update($, setupDraft, d => ({ ...d, judge: choice === 'haiku' ? 'auto' : choice }))
   await markSetupDone($)
   if (choice === 'haiku') {
-    $.ui.toast('effortless: Haiku 5.5 judges, no key needed. Add a Jev key later for faster answers.')
+    $.ui.toast('effortshift: Haiku 5.5 judges, no key needed. Add a Jev key later for faster answers.')
     return goSetup($, 'lean')
   }
   if (choice === 'jev' && (await findTypesafeKey($))) {
-    $.ui.toast('effortless: Jev judges with the TypeSafe key it found.')
+    $.ui.toast('effortshift: Jev judges with the TypeSafe key it found.')
     return goSetup($, 'lean')
   }
   await goSetup($, choice)
@@ -2070,7 +2070,7 @@ function tokens(n: number): string {
 const share = (part: number, whole: number) => `${Math.round((part / whole) * 100)} %`
 
 /**
- * What /effortless stats answers: what the prompts Auto steered cost, measured, split by kind and by effort,
+ * What /effortshift stats answers: what the prompts Auto steered cost, measured, split by kind and by effort,
  * and what the judge took. No "saved" figure: what a prompt would have cost at another effort is not known,
  * since effort mostly changes how many tool calls it makes. Cost is in tokens weighted as priced (WEIGHT).
  */
@@ -2253,13 +2253,13 @@ function effortOf(v: Snap, inUse: ModelKey): Effort | undefined {
   return EFFORTS.includes(v.shownByApp as Effort) ? (v.shownByApp as Effort) : undefined
 }
 
-// For /effortless debug: how often the app asked for the band, when, and the last error drawing it.
-// /effortless probe N: 1 a bare box, 2 the panel's frame and header only, 3 the panel without pickers or fields.
+// For /effortshift debug: how often the app asked for the band, when, and the last error drawing it.
+// /effortshift probe N: 1 a bare box, 2 the panel's frame and header only, 3 the panel without pickers or fields.
 let probeLevel = 0
 let renderCalls = 0
 let lastRenderProps = ''
 let lastRenderBranch = ''
-// Every time the app asked for the band, with what it sent, written to ~/.claude/effortless-render-<chat>.log each second
+// Every time the app asked for the band, with what it sent, written to ~/.claude/effortshift-render-<chat>.log each second
 // (the last 300): how often the band is really redrawn in the app, which the render rig cannot see (hover flicker).
 const renderLog: string[] = []
 let renderLogWritten = 0
@@ -2269,7 +2269,7 @@ async function writeRenderLog($: EngineInterface) {
   renderLogWritten = renderLog.length
   const home = (await envUserProfile($)) ?? (await envHome($))
   // One file per chat: a shared file was overwritten whole by whichever chat drew last.
-  if (home) await $.fs.write(`${home}/.claude/effortless-render-${loadedSession}.log`, renderLog.slice(-300).join('\n') + '\n').catch(() => undefined)
+  if (home) await $.fs.write(`${home}/.claude/effortshift-render-${loadedSession}.log`, renderLog.slice(-300).join('\n') + '\n').catch(() => undefined)
 }
 let lastRenderAt = 0
 let loadedSession = '-'
@@ -2279,10 +2279,10 @@ let firstDrawLogged = false
 let drawsTimed = 0
 let lastRenderError = ''
 let sessionStarted = 0
-// When the app's SessionStart came and what it said, for /effortless debug: a cold band that shows late is either a
+// When the app's SessionStart came and what it said, for /effortshift debug: a cold band that shows late is either a
 // late signal or a redraw the app did not take.
 let classicStart: { at: number; said: string } | null = null
-// /effortless cold shows the band whatever the chat's size, until the next response (a test of the band itself).
+// /effortshift cold shows the band whatever the chat's size, until the next response (a test of the band itself).
 let coldForced = false
 let handoffTimer: { cancel: () => void } | undefined
 const HANDOFF_POLL_MS = 1000
@@ -2324,7 +2324,7 @@ function markWarm(modelId: string, usage: unknown, now: number) {
 }
 const isWarm = (key: ModelKey, now: number) => (warmUntil[key] ?? 0) > now
 
-// When Haiku last wrote a compaction (for /effortless debug).
+// When Haiku last wrote a compaction (for /effortshift debug).
 let lastHaikuCompact = 0
 
 // The moving art's timer: one at a time, blitting the next frame to the band that drew it. A blit the surface refuses
@@ -2530,11 +2530,11 @@ function uninstallButton($: EngineInterface, els: ReturnType<EngineInterface['ui
     uninstalling = false
     if (r.exitCode !== 0) {
       const why = (r.stderr || r.stdout).trim().split('\n').pop() ?? ''
-      $.ui.toast(`effortless: uninstall failed: ${noClaudeHint(why, await homeDir($)) ?? why}`)
+      $.ui.toast(`effortshift: uninstall failed: ${noClaudeHint(why, await homeDir($)) ?? why}`)
       $.ui.invalidate('ui.render')
       return
     }
-    $.ui.toast('effortless is uninstalled. Thanks for trying it.')
+    $.ui.toast('effortshift is uninstalled. Thanks for trying it.')
     const reloaded = await $.command.run({ command: 'reload-plugins', args: RELOAD_ARGS } as never).then(() => true, () => false)
     if (!reloaded) await typeCommand($, `/reload-plugins ${RELOAD_ARGS}`)
   }
@@ -2584,7 +2584,7 @@ function handoffCardTree($: EngineInterface, e: RenderInput<'AssistantMessage'> 
         ) : cardRunning(fresh.kind) ? (
           <Svg source={HANDOFF_SVG} alt="handing off" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
         ) : (
-          <Svg source={cardLanded(fresh.kind) ? DONE_SVG : BRAND_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
+          <Svg source={cardLanded(fresh.kind) ? DONE_SVG : BRAND_SVG} alt="effortshift" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
         )}
       </Box>
       <Box key="reply-handoff-words" position="relative" flexDirection={quiet ? 'row' : 'column'} gap={quiet ? 1 : 0} flexShrink={1} minWidth={0}>
@@ -2615,16 +2615,14 @@ function handoffCardTree($: EngineInterface, e: RenderInput<'AssistantMessage'> 
 /** Where the mod learns of a new version: the newest entry of public.json on main, written only by tools/publish.sh.
  * Releases between publishes (releases.json) reach the dev channel, never this card. */
 // The API, not raw.githubusercontent.com: the raw file sits behind a cache that lagged two releases behind.
-const RELEASES_URL = 'https://api.github.com/repos/HeyCubit/effortless/contents/public.json?ref=main'
 const WHATS_NEW_URL = 'https://heycubit.github.io/effortless/whats-new/'
 /** The site, the link Share copies for a friend. */
 const SITE_URL = 'https://heycubit.github.io/effortless/'
-/** Where a bug is reported: a page on the site that opens a prefilled GitHub issue. */
-const REPORT_BUG_URL = 'https://heycubit.github.io/effortless/report/'
+/** Reports belong to the fork; only the plugin version is prefilled. */
+const REPORT_BUG_URL = 'https://github.com/rafaeljorge-ai/effortshift/issues/new'
 /** This install's version, read from its plugin.json at session start: the report page fills it in. */
 let ownVersion = ''
 /** How often a session looks for a new version, and how long ✕ on the offer keeps it away. */
-const UPDATE_CHECK_MS = 6 * 3600_000
 const UPDATE_SNOOZE_MS = 24 * 3600_000
 /** How long "Updated" stays above the prompt when nothing else clears it. */
 const UPDATED_CARD_MS = 30_000
@@ -2660,42 +2658,8 @@ async function installedVersion($: EngineInterface): Promise<string | undefined>
     return undefined
   }
 }
-/** Looks for a newer version and offers it, unless ✕ put that version away less than UPDATE_SNOOZE_MS ago. */
-// What the last check found, for /effortless update to say (installed, git, web, marketplace).
-let lastUpdateCheck = 'not checked yet'
-/** public.json as it is on stable, read with git: a depth-1 fetch without file contents into a small repo of its own, then
- * the one file. Git has no cache in the way, unlike the host's web fetch, and works on the dev channel too. */
-async function latestFromGit($: EngineInterface): Promise<{ version: string; note: string } | undefined> {
-  const dir = `${$.plugin.root.replace(/[\\/]cache[\\/].*$/, '')}/data/effortless-release-check`
-  const git = (...args: string[]) => $.process.run(['git', '-C', dir, ...args], { timeoutMs: 60_000 })
-  if ((await git('rev-parse', '--git-dir').catch(() => null))?.exitCode !== 0) {
-    await $.process.run(['git', 'init', '-q', dir], { timeoutMs: 30_000 })
-    await git('remote', 'add', 'origin', 'https://github.com/HeyCubit/effortless.git')
-  }
-  const fetched = await git('fetch', '-q', '--depth', '1', '--filter=blob:none', 'origin', 'stable')
-  if (fetched.exitCode !== 0) return undefined
-  const shown = await git('show', 'FETCH_HEAD:public.json')
-  return shown.exitCode === 0 ? latestRelease(shown.stdout) : undefined
-}
-/** The newest public release: from git first; where git is missing or offline, public.json on main over the web and the
- * marketplace's own copy after `claude plugin marketplace update`, whichever is newer. */
-async function latestAvailable($: EngineInterface): Promise<{ latest?: { version: string; note: string }; how: string }> {
-  const fromGit = await latestFromGit($).catch(() => undefined)
-  if (fromGit) return { latest: fromGit, how: `git ${fromGit.version}` }
-  const res = await $.http.fetch(`${RELEASES_URL}&t=${Date.now()}`, { headers: { accept: 'application/vnd.github.raw', 'user-agent': 'effortless' } }).catch((error: unknown) => ({ ok: false, status: 0, text: String(error) }))
-  const fromWeb = res.ok ? latestRelease(res.text) : undefined
-  const web = res.ok ? (fromWeb ? `web ${fromWeb.version}` : 'web: unreadable') : `web refused (${res.status || res.text.slice(0, 80)})`
-  const marketplace = `${$.plugin.root.replace(/[\\/]cache[\\/].*$/, '')}/marketplaces/effortless/public.json`
-  const readLocal = async () => {
-    const text = await $.fs.read(marketplace).catch(() => '')
-    return latestRelease(typeof text === 'string' ? text : '')
-  }
-  // Always refreshed: the host's web fetch can answer from its own cache, git does not.
-  await runClaude($, ['plugin', 'marketplace', 'update', 'effortless'], { timeoutMs: 120_000, env: GITHUB_OVER_HTTPS }).catch(() => null)
-  const local = await readLocal()
-  const best = fromWeb && (!local || !isNewer(local.version, fromWeb.version)) ? fromWeb : local
-  return { latest: best, how: `git failed; ${web}; marketplace ${local?.version ?? 'unreadable'}` }
-}
+// EffortShift is a local fork. No upstream discovery, fetch or installation.
+const LOCAL_UPDATES = 'EffortShift: upstream updates are disabled. Update this local fork manually.'
 /** The session's timers. A reload starts the module over, maybe with no session start (the countdown froze on "Cold"),
  * so the band's first draw starts them too. A session start always starts them: a timer started inside a request may
  * end with it. */
@@ -2703,7 +2667,6 @@ let timersFrom: 'start' | 'draw' | null = null
 function startTimers($: EngineInterface, from: 'start' | 'draw') {
   if (timersFrom === 'start' || (timersFrom === 'draw' && from === 'draw')) return
   timersFrom = from
-  $.clock.every(UPDATE_CHECK_MS, () => void checkUpdate($).catch(() => undefined))
   // The cache countdown's clock. A timer started inside a request ends with that request, so it lives here.
   $.clock.every(CACHE_TICK_MS, () => void showCache($).catch(() => undefined))
   $.clock.every(CACHE_TICK_MS, () => void checkSwamp($).catch(() => undefined))
@@ -2746,55 +2709,8 @@ async function afterLoad($: EngineInterface) {
   // A reload has no session start, so this load reads its own version here too.
   ownVersion = (await installedVersion($)) ?? ownVersion
   startTimers($, 'draw')
-  const updatedTo = (await $.store.get('updatedTo').catch(() => null)) as { version: string; note: string; at: number } | null
-  // A "Loading it…" left by the copy before this load is over either way.
-  await update($, updateCard, c => (c && c.detail === UPDATE_LOADING ? { ...c, detail: 'Installed. Open a new chat to load it.' } : c))
-  if (updatedTo) {
-    await $.store.set('updatedTo', null)
-    // The reload brought back older code (the chat's folder was not refreshed): the old code's timer died with the
-    // reload, so the card would say "Loading it…" for good. Say what to do instead.
-    const loaded = (await installedVersion($)) === updatedTo.version
-    await update($, updateCard, () => ({ stage: 'done', version: updatedTo.version, note: updatedTo.note, at: Date.now(), ...(loaded ? {} : { detail: 'Installed. Open a new chat to load it.' }) }))
-  }
-  await checkUpdate($)
+  await update($, updateCard, () => null)
 }
-async function checkUpdate($: EngineInterface) {
-  const shown = await read($, updateCard)
-  if (shown && shown.stage !== 'offer') {
-    lastUpdateCheck = `skipped while the ${shown.stage} card shows`
-    return
-  }
-  const { latest, how } = await latestAvailable($)
-  const mine = await installedVersion($)
-  lastUpdateCheck = `installed ${mine ?? 'unreadable'}; ${how}`
-  if (!latest || !mine || !isNewer(latest.version, mine)) {
-    if (shown) await update($, updateCard, () => null)
-    // A version found earlier is stale once this one is as new (installed some other way): the button looks again.
-    await update($, updateCheck, cur => (cur.startsWith('found ') ? 'idle' : cur))
-    return
-  }
-  const now = await $.clock.now()
-  const hidden = (await $.store.get('updateHidden').catch(() => null)) as { version: string; at: number } | null
-  if (updateSnoozed(hidden, latest.version, now)) return
-  if (shown?.version !== latest.version) await update($, updateCard, () => ({ stage: 'offer', version: latest.version, note: latest.note, at: now }))
-}
-// The Settings header's "Check for updates": idle, checking, up to date, or the version found (then the button installs it).
-const updateCheck = atom({ plugin: 'effortless', key: 'updateCheck' } as const, 'idle')
-/** Looks now, ignoring a Later pressed earlier (asking is a decision to look), and says what it found in the button. */
-async function checkUpdateNow($: EngineInterface) {
-  await update($, updateCheck, () => 'checking')
-  await $.store.set('updateHidden', null).catch(() => undefined)
-  // An Updated or failed card left from earlier made checkUpdate skip the look and the button said Up to date.
-  await update($, updateCard, c => (c && (c.stage === 'done' || c.stage === 'failed') ? null : c))
-  await checkUpdate($).catch((error: unknown) => { lastUpdateCheck = `check failed: ${String(error).slice(0, 120)}` })
-  const card = await read($, updateCard)
-  await update($, updateCheck, () => (card && card.stage === 'offer' ? `found ${card.version}` : 'newest'))
-  // "Up to date" goes back to the button after a few seconds; a found version stays until it is installed or put away.
-  if (!(card && card.stage === 'offer')) $.clock.after(5000, () => void update($, updateCheck, cur => (cur === 'newest' ? 'idle' : cur)))
-}
-// The repo is public, so HTTPS needs no key (only this repo's address is rewritten). Without it, git reaches GitHub
-// over SSH and fails for anyone with no SSH key there ("make sure you have the correct access rights").
-const GITHUB_OVER_HTTPS = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: 'url.https://github.com/HeyCubit/.insteadOf', GIT_CONFIG_VALUE_0: 'git@github.com:HeyCubit/' }
 /** The line of a failed `claude plugin` run that says what went wrong: git's own `fatal:`/`error:` line, else the
  * CLI's ✘ line, else the last line. The last line alone was often the tail of a wrapped sentence. */
 export function updateFailure(output: string): string {
@@ -2835,39 +2751,6 @@ async function runClaude($: EngineInterface, args: string[], opts: Parameters<En
   }
   throw last
 }
-/** Update pressed: the marketplace and the plugin are updated as `claude plugin` does, then the plugins reloaded so
- * the new version runs in this chat. The new module shows "Updated" (see session.start). */
-async function runUpdate($: EngineInterface, card: UpdateCard) {
-  await update($, updateCard, () => ({ ...card, stage: 'updating' }))
-  const step = async (args: string[]) => {
-    const r = await runClaude($, args, { timeoutMs: 180_000, env: GITHUB_OVER_HTTPS })
-    if (r.exitCode !== 0) throw new Error(updateFailure(r.stderr || r.stdout) || `claude ${args.join(' ')} failed`)
-  }
-  try {
-    // This install's own marketplace: effortless for users, effortless-dev on the dev channel.
-    await step(['plugin', 'marketplace', 'update', pluginId($).split('@')[1]])
-    await step(['plugin', 'update', pluginId($)])
-  } catch (error) {
-    const message = String(error instanceof Error ? error.message : error)
-    // No CLI anywhere (a desktop-only install): say what to install, not the engine's ENOENT.
-    const home = await homeDir($)
-    await update($, updateCard, () => ({ ...card, stage: 'failed', detail: noClaudeHint(message, home) ?? message }))
-    return
-  }
-  // The desktop app keeps this chat on the folder it started with, and a reload reads that folder again: so the new
-  // version's files go into it, or the reload would bring back the old code.
-  await syncRunningCopy($).catch(() => undefined)
-  const now = await $.clock.now()
-  await $.store.set('updatedTo', { version: card.version, note: card.note, at: now })
-  // Installed, not yet running: only the new code, once loaded, says "Loaded in this chat" (afterLoad).
-  await update($, updateCard, () => ({ ...card, stage: 'done', at: now, detail: UPDATE_LOADING }))
-  // The reload loads the new version here; where the app takes no command from a plugin, it is typed for Enter.
-  const reloaded = await $.command.run({ command: 'reload-plugins', args: RELOAD_ARGS } as never).then(() => true, () => false)
-  if (!reloaded && (await typeCommand($, `/reload-plugins ${RELOAD_ARGS}`)))
-    await update($, updateCard, c => (c ? { ...c, detail: 'Press Enter to load it' } : c))
-  // Still this code's words after a while: the reload did not load the new version, so a new chat has to.
-  $.clock.after(UPDATE_LOAD_WAIT_MS, () => void update($, updateCard, c => (c && c.at === now && c.detail === UPDATE_LOADING ? { ...c, detail: 'Installed. Open a new chat to load it.' } : c)))
-}
 /** The command that puts the installed version's files over the running copy, or nothing when they are the same folder or
  * either is not a plugin cache folder (a working copy is never written over). */
 export function syncPlan(running: string, installed: string | undefined): string[] | undefined {
@@ -2878,124 +2761,8 @@ export function syncPlan(running: string, installed: string | undefined): string
     ? ['robocopy', installed, running, '/E', '/NFL', '/NDL', '/NJH', '/NJS', '/NP']
     : ['cp', '-R', `${installed}/.`, running]
 }
-/** Copies the files of the version just installed into the folder this chat runs from, when the two differ. A failed
- * copy leaves the reload as it was. */
-async function syncRunningCopy($: EngineInterface) {
-  const home = $.plugin.root.replace(/[\\/]cache[\\/].*$/, '')
-  const record = JSON.parse(String(await $.fs.read(`${home}/installed_plugins.json`))) as { plugins?: Record<string, { installPath?: unknown }[]> }
-  const installed = record.plugins?.[pluginId($)]?.map(x => x.installPath).filter((x): x is string => typeof x === 'string').at(-1)
-  const argv = syncPlan($.plugin.root, installed)
-  if (!argv) return
-  const r = await $.process.run(argv, { timeoutMs: 120_000 })
-  // robocopy answers below 8 when it copied (1 = files copied).
-  if (argv[0] === 'robocopy' ? r.exitCode >= 8 : r.exitCode !== 0) throw new Error(`copy failed (${r.exitCode})`)
-}
-// The reload is queued until Claude is idle: pressed mid-reply, it waits for the reply to finish.
-const UPDATE_LOADING = 'Installed. Loads as soon as Claude is idle.'
-/** A plain /reload-plugins holds back a change that would make the next message re-read the chat without the cache
- * (new commands do), says "installed but not applied" and keeps the old code running. Update was pressed: apply it. */
+// Shared by the existing local uninstall action. Upstream updates remain disabled.
 export const RELOAD_ARGS = '--force'
-const UPDATE_LOAD_WAIT_MS = 15_000
-/** The update card above the prompt: the offer, the moving art while it updates, green once done. */
-function updateCardTree($: EngineInterface, e: RenderInput<'AbovePrompt'>, card: UpdateCard) {
-  const { Box, Text, Svg, Button, Link } = themedEls($.ui.resolve(e))
-  const landed = card.stage === 'done'
-  const words = {
-    offer: [`✦ effortless ${card.version} is out`, card.note || 'A new version is ready.'],
-    updating: ['✦ Updating…', `Getting ${card.version}. Takes a few seconds.`],
-    done: [`✦ Updated to ${card.version}`, card.detail ?? 'Loaded in this chat.'],
-    failed: ['✦ Update failed', card.detail ?? 'Try again, or run claude plugin update effortless@effortless.'],
-  }[card.stage]
-  const share = async () => {
-    const r = await $.ui.copy({ text: SITE_URL, surface: e.surface }).catch(() => ({ isCopied: false as const }))
-    $.ui.toast(r.isCopied ? 'Link copied. Send it to a friend.' : 'effortless: could not copy the link')
-  }
-  const hide = async () => {
-    if (card.stage === 'offer') await $.store.set('updateHidden', { version: card.version, at: await $.clock.now() })
-    await update($, updateCard, () => null)
-  }
-  const divider = (key: string) => (
-    <Box key={key} flexShrink={0} marginX={1}>
-      <Svg source={DIVIDER_SVG} alt="divider" width={1} height={18} />
-    </Box>
-  )
-  // Each control in a box of its own: under one shared box, hovering one lit the other too.
-  const own = (key: string, el: unknown) => (
-    <Box key={key} position="relative" flexShrink={0}>
-      <Box position="absolute" top={0} left={0} />
-      {el as never}
-    </Box>
-  )
-  const installLine = card.stage === 'failed' ? card.detail?.match(/(irm \S+ \| iex|curl -fsSL \S+ \| bash)/)?.[1] : undefined
-  // The offer is Update or Later (Later puts this version away for a day); "Updated" has the link and a ✕; a failed
-  // update has Try again and ✕. Nothing while it runs.
-  const controls =
-    card.stage === 'offer'
-      ? [
-          own('update-go-box', <Button key="update-go" variant="primary" label="Update" onPress={() => runUpdate($, card)} />),
-          own('update-later-box', <Button key="update-later" variant="secondary" label="Later" onPress={hide} />),
-        ]
-      : card.stage === 'failed'
-        ? [
-            // No CLI: the install line can be cut off on a narrow card, so it is a press away whole.
-            ...(installLine
-              ? [own('update-copy-box', <Button key="update-copy" variant="secondary" label="Copy install command" onPress={async () => {
-                  const r = await $.ui.copy({ text: installLine, surface: e.surface }).catch(() => ({ isCopied: false as const }))
-                  $.ui.toast(r.isCopied ? 'Install command copied. Paste it in PowerShell or Terminal, then reopen the app.' : `effortless: run ${installLine}`)
-                }} />)]
-              : []),
-            own('update-go-box', <Button key="update-go" variant="primary" label="Try again" onPress={() => runUpdate($, card)} />),
-            own('update-close-box', <Button key="update-close" plain label="✕" hover={{ backgroundColor: CARD_CLOSE_HOVER }} onPress={hide} />),
-          ]
-        : landed
-          ? [
-              // White and bold: the app's blue link was hard to see on the green and the check.
-              own('update-link-box', <Text color="#ffffff" bold><Link href={WHATS_NEW_URL} label="What's new →" /></Text>),
-              divider('update-div-1'),
-              own('update-share-box', (
-                // The icon and the word, with a blank button laid over both: its hover veil covers the icon too.
-                <Box key="update-share" position="relative" flexDirection="row" alignItems="center" gap={1} paddingX={1} flexShrink={0}>
-                  <Svg source={SHARE_MARK_SVG} alt="Share" width={14} height={14} />
-                  <Text>Share</Text>
-                  <Box position="absolute" top={0} bottom={0} left={0} right={0} alignItems="center" justifyContent="center">
-                    <Button key="update-share-go" plain hover={{ backgroundColor: UPDATED_HOVER }} label={' '.repeat(23)} onPress={share} />
-                  </Box>
-                </Box>
-              )),
-              divider('update-div-2'),
-              own('update-star-box', (
-                <Box key="update-star" flexDirection="row" alignItems="center" gap={1}>
-                  <Svg source={GITHUB_MARK_SVG} alt="GitHub" width={14} height={14} />
-                  <Link href={REPO_URL} label="Star on GitHub" />
-                </Box>
-              )),
-              own('update-close-box', <Button key="update-close" plain label="✕" hover={{ backgroundColor: UPDATED_HOVER }} onPress={hide} />),
-            ]
-          : []
-  return (
-    <Box key="update-card" position="relative" flexDirection="row" alignItems="center" paddingX={1} overflow="hidden"
-      backgroundColor={landed ? UPDATED_BG : BRAND_BG} borderStyle="round" borderColor={landed ? UPDATED_EDGE : BRAND_EDGE}>
-      {landed ? (
-        <Box key="update-glow" position="absolute" top={-1} left={0} bottom={-1}>
-          <Svg source={UPDATED_GLOW_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
-        </Box>
-      ) : (
-        <Box key="update-art" position="absolute" top={-1} right={0} bottom={-1}>
-          <Svg source={card.stage === 'updating' ? HANDOFF_SVG : BRAND_SVG} alt={card.stage === 'updating' ? 'updating' : 'effortless'} width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
-        </Box>
-      )}
-      <Box key="update-words" position="relative" flexDirection="column" flexShrink={1} minWidth={0}>
-        {markTitle({ Box, Text, Svg }, 'update-title', landed ? DONE_ACCENT : ACCENT, words[0], landed ? DONE_MARK_SVG : MARK_SVG)}
-        <Text wrap="truncate">{words[1]}</Text>
-      </Box>
-      <Box key="update-controls" position="relative" flexGrow={1} flexDirection="row" justifyContent="flex-end" alignItems="center" gap={1}>
-        {/* Positioned by an empty absolute child, so it paints over the art and takes the clicks. */}
-        <Box position="absolute" top={0} left={0} />
-        {controls}
-      </Box>
-    </Box>
-  )
-}
 
 /** How long "Compact complete" stays above the prompt when nothing else clears it. */
 const COMPACT_CARD_MS = 20_000
@@ -3141,9 +2908,9 @@ const AUTO_GLOW_H = 37
 /** The cold band's rim: the Auto glow's light in ice, breathing slowly for as long as the band shows, so a cold chat
  * looks alive rather than parked. Placed by the clock (inPhase), so a redraw picks up where the breath was. */
 const COLD_GLOW_MS = 4200
-/** This install's id: effortless@effortless for users, effortless@effortless-dev on the dev channel. Read off the
- * cache path (…/plugins/cache/<marketplace>/effortless/<version>). */
-const pluginId = ($: EngineInterface) => `effortless@${$.plugin.root.match(/cache[\\/]([^\\/]+)[\\/]/)?.[1] ?? 'effortless'}`
+/** This install's id: effortshift@effortshift for users, effortshift@effortshift-dev on the dev channel. Read off the
+ * cache path (…/plugins/cache/<marketplace>/effortshift/<version>). */
+const pluginId = ($: EngineInterface) => `effortshift@${$.plugin.root.match(/cache[\\/]([^\\/]+)[\\/]/)?.[1] ?? 'effortshift'}`
 
 /** The rim in the brand's violet while the judge decides: it lights up and stays at full while it thinks, then fades from
  * full once the verdict is in. Two images, each placed by the clock on every draw (inPhase): the app swaps the whole
@@ -3239,7 +3006,7 @@ let autoFlipAt = 0
 let helpersSeen: string | undefined
 let helpersFlipAt = 0
 
-/** The dashboard: what effortless is doing, and Auto, Handoff and settings. The slot above the prompt at rest. */
+/** The dashboard: what effortshift is doing, and Auto, Handoff and settings. The slot above the prompt at rest. */
 async function dashboardBand($: EngineInterface, e: RenderInput<'AbovePrompt'>) {
   const els = themedEls($.ui.resolve(e))
   const { Box, Text, Button } = els
@@ -3372,7 +3139,7 @@ async function dashboardBand($: EngineInterface, e: RenderInput<'AbovePrompt'>) 
         // Auto off: the art goes, so the bar reads as resting, not working.
         v.auto ? (
           <Box key="dash-art" position="absolute" top={-1} right={0} bottom={-1}>
-            <Svg source={DASH_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
+            <Svg source={DASH_SVG} alt="effortshift" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
           </Box>
         ) : null
       ) : null}
@@ -3395,7 +3162,7 @@ async function dashboardBand($: EngineInterface, e: RenderInput<'AbovePrompt'>) 
           {Svg ? (
             // The mark, as it is, where the ✦ stood; faded while Auto is off.
             <Box key="dash-mark" flexShrink={0} marginRight={1} alignItems="center">
-              <Svg source={v.auto ? MARK_SVG : DASH_MARK_OFF} alt="effortless" width={DASH_MARK_SIZE} height={DASH_MARK_SIZE} />
+              <Svg source={v.auto ? MARK_SVG : DASH_MARK_OFF} alt="effortshift" width={DASH_MARK_SIZE} height={DASH_MARK_SIZE} />
             </Box>
           ) : <Text color={v.auto ? ACCENT : DASH_DIM} bold>✦ </Text>}
           {/* A new effort shows in violet, then white (effortFlash): plain text in the app's font. An animated image of the
@@ -3499,7 +3266,7 @@ async function effortRows($: EngineInterface, e: RenderInput<'AbovePrompt'>, opt
   const { auto, autoModel, current, judging, wanted, shownByApp } = v
   const inUse = v.modelNow ?? (await sessionModel($))
   const effortNow = effortOf(v, inUse)
-  // The model row is paused: effort first. EFFORTLESS_MODEL_UI=1 brings it back.
+  // The model row is paused: effort first. EFFORTSHIFT_MODEL_UI=1 brings it back.
   const showModel = (await envModelUi($)) === '1'
 
   const setEffort = (level: Effort) => () => pickEffort($, level)
@@ -3664,7 +3431,7 @@ async function helperEffortOf($: EngineInterface, id: string): Promise<Effort | 
   return match.effort
 }
 
-/** Counts one request of a helper the judge steered, for /effortless stats. */
+/** Counts one request of a helper the judge steered, for /effortshift stats. */
 async function helperTally($: EngineInterface, usage: Parameters<typeof weighted>[0]) {
   await update($, saved, old => {
     const t = asSpent(old)
@@ -3784,12 +3551,12 @@ export const register: Register = (on, options) => {
     // A subagent's own compaction, the session's model by choice: Claude Code's own.
     if (e.agentId !== undefined || config.compactWith !== 'haiku') return next(e)
     // Ahead-of-time summaries would be written by the chat's model and then not used: none.
-    if (e.trigger === 'precompute') return { skip: 'effortless compacts with Haiku when it is time' }
+    if (e.trigger === 'precompute') return { skip: 'effortshift compacts with Haiku when it is time' }
     // The transcript comes with the event; read it if not (a test's engine hands none).
     const messages = Array.isArray(e.messages) && e.messages.length ? e.messages : await $.session.messages().catch(() => [])
     const got = await haikuCompaction($, messages, e.instructions).catch((error: unknown) => ({ fail: String(error).slice(0, 80) }))
     if ('fail' in got) {
-      $.ui.toast(`effortless: Haiku could not compact (${got.fail}). The chat's own model does it.`)
+      $.ui.toast(`effortshift: Haiku could not compact (${got.fail}). The chat's own model does it.`)
       return next(e)
     }
     lastHaikuCompact = Date.now()
@@ -3797,7 +3564,7 @@ export const register: Register = (on, options) => {
       messages: [
         {
           role: 'user' as const,
-          text: `This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation, written by Haiku 5.5 for effortless.\n\n${got.text}\n\nContinue the conversation from where it left off without asking the user any further questions.`,
+          text: `This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation, written by Haiku 5.5 for effortshift.\n\n${got.text}\n\nContinue the conversation from where it left off without asking the user any further questions.`,
           toolUses: [],
         },
       ],
@@ -3832,9 +3599,9 @@ export const register: Register = (on, options) => {
       // The first time the mod runs, the setup guide opens above the prompt.
       setupDone !== true ? update($, setupStep, () => 'pick').then(() => update($, setupPending, () => true)) : null,
     ])
-    // The command file lists /effortless before the session starts; registering it here makes plain /effortless the
+    // The command file lists /effortshift before the session starts; registering it here makes plain /effortshift the
     // mod's own command afterwards, instead of the file run as a skill.
-    void $.command.register({ name: 'effortless', description: 'effortless: settings, debug, handoff, setup, bench, auto, stats.' }).catch(() => undefined)
+    void $.command.register({ name: 'effortshift', description: 'effortshift: settings, debug, handoff, setup, bench, auto, stats.' }).catch(() => undefined)
     void $.fs.read(`${$.plugin.root}/.claude-plugin/plugin.json`).then(t => { ownVersion = String(JSON.parse(String(t)).version ?? '') }).catch(() => undefined)
     void afterLoad($).catch(() => undefined)
     void drainSetupSave($).catch(() => undefined)
@@ -3892,42 +3659,20 @@ export const register: Register = (on, options) => {
       if (e.reason === 'answer' && e.answer.trim()) handoffText = e.answer
       else {
         await update($, handoffStage, () => null)
-        $.ui.toast('effortless: the handoff was not written, nothing was cleared')
+        $.ui.toast('effortshift: the handoff was not written, nothing was cleared')
       }
     }
     return result
   })
 
-  // /effortless is a command file in the plugin (commands/effortless.md), so the app lists it before the session has
+  // /effortshift is a command file in the plugin (commands/effortshift.md), so the app lists it before the session has
   // started; this hook answers it, and the file's text never reaches the model. Both spellings the app may use.
   on('command.run', async ($, e, next) => {
-    if (e.command !== 'effortless' && e.command !== 'effortless:effortless') return next(e)
+    if (e.command !== 'effortshift' && e.command !== 'effortshift:effortshift') return next(e)
     const wanted = await read($, suggestion)
     const arg = e.args.trim().toLowerCase()
-    // /effortless card offer|updating|done|failed: draws that update card with made-up text, to look at it before a publish.
-    if (arg.startsWith('card')) {
-      const stage = arg.slice(4).trim() || 'done'
-      const stages = ['offer', 'updating', 'done', 'failed']
-      if (stage === 'off') {
-        await update($, updateCard, () => null)
-        return { text: 'The preview card is gone.' }
-      }
-      if (!stages.includes(stage)) return { text: 'Use /effortless card offer, updating, done, failed or off.' }
-      const version = (await installedVersion($)) ?? '1.0.0'
-      await update($, updateCard, () => ({
-        stage: stage as UpdateCard['stage'], version, note: 'A short release note, as users see it.', at: Date.now(),
-        ...(stage === 'failed' ? { detail: 'A made-up failure, for the look of the card.' } : {}),
-      }))
-      $.ui.invalidate('ui.render')
-      return { text: `The update card shows its "${stage}" look (a preview). /effortless card off clears it.` }
-    }
-    if (arg === 'update') {
-      await checkUpdate($).catch(() => undefined)
-      const card = await read($, updateCard)
-      if (!card || card.stage === 'done') return { text: `effortless ${(await installedVersion($)) ?? ''} is the newest (${lastUpdateCheck}).` }
-      void runUpdate($, card)
-      return { text: `Updating to ${card.version}…` }
-    }
+    // /effortshift card offer|updating|done|failed: draws that update card with made-up text, to look at it before a publish.
+    if (arg.startsWith('card') || arg === 'update') return { text: LOCAL_UPDATES }
     if (arg === 'agents' || arg === 'agents demo') {
       if (arg === 'agents demo') {
         const now = await $.clock.now()
@@ -3935,7 +3680,7 @@ export const register: Register = (on, options) => {
         await update($, agentFiles, () => demoFiles(now))
         await update($, agentSteps, () => demoSteps())
       }
-      await $.ui.open({ id: 'effortless-agents', title: 'Agents' })
+      await $.ui.open({ id: 'effortshift-agents', title: 'Agents' })
       return { text: arg === 'agents demo' ? 'The agent panel shows sample agents (a preview).' : 'The agent panel is open.' }
     }
     if (arg === 'auto') {
@@ -3997,7 +3742,7 @@ export const register: Register = (on, options) => {
           `hidden: ${config.hide.join(',') || 'nothing'}`,
           `model: ${config.modelAuto === 'on' ? `cheaper when it can, now ${routed ?? 'the chat\'s'}` : 'always the chat\'s'}`,
           lastRequest
-            ? `last request: app asked ${lastRequest.appModel} at ${lastRequest.appEffort ?? 'none'}, sent ${lastRequest.model} at ${lastRequest.effort ?? 'none'}${lastRequest.model === lastRequest.appModel && lastRequest.effort === lastRequest.appEffort ? ' (unchanged)' : ' (changed by effortless)'}, ${ago(lastRequest.at)}`
+            ? `last request: app asked ${lastRequest.appModel} at ${lastRequest.appEffort ?? 'none'}, sent ${lastRequest.model} at ${lastRequest.effort ?? 'none'}${lastRequest.model === lastRequest.appModel && lastRequest.effort === lastRequest.appEffort ? ' (unchanged)' : ' (changed by effortshift)'}, ${ago(lastRequest.at)}`
             : 'last request: none yet',
           `compact with: ${config.compactWith}${lastHaikuCompact ? `, last by Haiku ${ago(lastHaikuCompact)}` : ''}`,
         ].join(' | ') +
@@ -4008,19 +3753,19 @@ model used: ${lastRequest ? `${lastRequest.model} at ${lastRequest.effort ?? 'no
     }
     if (arg === 'settings') {
       await openPluginSettings($)
-      return { text: 'The effortless settings are open above the prompt.' }
+      return { text: 'The effortshift settings are open above the prompt.' }
     }
     if (arg === 'setup') {
       await update($, setupStep, () => 'pick')
       $.ui.invalidate('ui.render')
-      return { text: 'The effortless setup is open above the prompt.' }
+      return { text: 'The effortshift setup is open above the prompt.' }
     }
     if (arg === 'bench') {
       const cases = (JSON.parse(await $.fs.read(`${$.plugin.root}/bench/judge-cases.json`)) as { cases: BenchCase[] }).cases
       const answers = await runBench($, cases)
       const report = benchReport(cases, answers)
       const stamp = new Date(await $.clock.now()).toISOString().slice(0, 16).replace(/[:T]/g, '-')
-      const out = `effortless-bench-${stamp}`
+      const out = `effortshift-bench-${stamp}`
       await $.fs.write(`${out}.json`, JSON.stringify({ cases: cases.length, answers }, null, 2))
       await $.fs.write(`${out}.md`, report)
       return { text: `${report}
@@ -4057,7 +3802,7 @@ Saved to ${out}.md and .json` }
     const wantsEffort = await read($, isAuto)
     const wantsModel = await read($, isAutoModel)
     // A typed slash command is judged only when it is a skill or a custom command (what the person added); the app's own
-    // (/compact, /clear, /model) and effortless's never are. The judge is told what the command is, since its name alone says little.
+    // (/compact, /clear, /model) and effortshift's never are. The judge is told what the command is, since its name alone says little.
     const slash = e.text.trim().startsWith('/')
     const skill = slash && byPerson ? await typedSkill($, e.text) : undefined
     if (!byPerson || (slash && !skill) || (!wantsEffort && !wantsModel)) return next(e)
@@ -4173,7 +3918,7 @@ Saved to ${out}.md and .json` }
         }
         if (wantsModel && verdict.model !== inUse && verdict.model !== declined) {
           await update($, suggestion, () => verdict.model)
-          $.ui.toast(`Suggestion: switch to ${verdict.model}? /effortless switch or /effortless keep`)
+          $.ui.toast(`Suggestion: switch to ${verdict.model}? /effortshift switch or /effortshift keep`)
         } else if (verdict.model === inUse) {
           await update($, suggestion, () => null)
         }
@@ -4224,7 +3969,7 @@ Saved to ${out}.md and .json` }
         await choose($, { model: await sessionModel($), effort: seen, why: 'your pick in the app', by: 'manual' })
         void proof($, `request ${e.index}: you set effort ${seen} yourself, Auto off`)
         // The app has no event for its effort picker: this is the first request after the pick, so say it plainly.
-        $.ui.toast(`effortless: Auto is off. You picked ${EFFORT_LABELS[seen as Effort] ?? seen}; turn Auto on to hand it back.`)
+        $.ui.toast(`effortshift: Auto is off. You picked ${EFFORT_LABELS[seen as Effort] ?? seen}; turn Auto on to hand it back.`)
         return yield* send(e)
       }
     }
@@ -4280,7 +4025,7 @@ Saved to ${out}.md and .json` }
   // The only desktop UI: the effort in use, as purple text in the prompt footer, under the chat box, and a small
   // button that switches Auto off and on. A Button cannot be coloured and the footer draws no outline or tint, so
   // plain Text is what is purple. While the judge decides it says "Deciding…", for a moment after Auto switches the level it says
-  // "Low → High", and while Auto is off it says "Off" in the dim colour. Auto is switched with /effortless auto.
+  // "Low → High", and while Auto is off it says "Off" in the dim colour. Auto is switched with /effortshift auto.
   on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
     // The dashboard look keeps all of this in the band above the prompt; the app's own footer shows.
     if (e.surface !== 'desktop' || config.layout === 'default') return next(e)
@@ -4440,7 +4185,7 @@ Saved to ${out}.md and .json` }
     return result
   })
 
-  on('ui.render', { component: 'Pane', requestId: 'effortless-agents' }, async ($, e) => {
+  on('ui.render', { component: 'Pane', requestId: 'effortshift-agents' }, async ($, e) => {
     const els = themedEls($.ui.resolve(e))
     const agents = await read($, agentsState)
     const open = await read($, agentsOpen)
@@ -4483,7 +4228,7 @@ Saved to ${out}.md and .json` }
 
   // Above the prompt: the terminal's rows (effort steps, Auto, and the model row when it is switched on).
   // On desktop nothing is drawn here, except the question when the judge suggests another model.
-  // Draws the bands and the settings panel. Counted and guarded so /effortless debug can say whether the app asks
+  // Draws the bands and the settings panel. Counted and guarded so /effortshift debug can say whether the app asks
   // for it at all and whether drawing failed: an error here otherwise only leaves the slot empty.
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
     // Setup changes a reload cut off are saved from here: the reloaded plugin draws before anything else runs.
@@ -4528,7 +4273,6 @@ Saved to ${out}.md and .json` }
       const skillNames = await read($, installedSkills)
       const hasKey = Boolean(await jevKey($).catch(() => undefined)) || Boolean(await typesafeKeyAnywhere($).catch(() => undefined))
       // A plain button with its own handler: a dismiss-role button may be taken by the app before onPress runs.
-      const checking = await read($, updateCheck)
       const close = async () => {
         await update($, settingsDraft, () => ({}))
         await update($, judgeTest, () => null)
@@ -4649,7 +4393,7 @@ Saved to ${out}.md and .json` }
       if (probeLevel === 1) {
         return (
           <Box key="probe" borderStyle="round" borderColor={BRAND_EDGE} paddingX={1}>
-            <Text>effortless probe 1: a bare box</Text>
+            <Text>effortshift probe 1: a bare box</Text>
           </Box>
         )
       }
@@ -4660,7 +4404,7 @@ Saved to ${out}.md and .json` }
       const headRow = (kids: unknown[]) => term
         ? <Box key="settings-head" flexDirection="row" flexWrap="wrap" justifyContent="space-between" columnGap={2}>{kids}</Box>
         : kids
-      const bugUrl = ownVersion ? `${REPORT_BUG_URL}?effortless=${encodeURIComponent(ownVersion)}` : REPORT_BUG_URL
+      const bugUrl = ownVersion ? `${REPORT_BUG_URL}?title=${encodeURIComponent(`EffortShift ${ownVersion}: `)}` : REPORT_BUG_URL
       return (
         // The dashboard's look: the neutral band and its quiet edge, purple only on the star, no art behind the rows (it
         // made them busy). The entrance
@@ -4673,7 +4417,7 @@ Saved to ${out}.md and .json` }
             <Box key="settings-bar" position="absolute" top={-1} left={0} right={0} height={3.5} overflow="hidden" backgroundColor={DASH_HEAD}>
               {/* The mark, big, tilted and cut off by the bar's edges, behind the title and the buttons. */}
               <Box key="settings-bar-mark" position="absolute" top={-2} right={20} marginTop={1}>
-                <Svg source={SETTINGS_MARK} alt="effortless mark" width={140} height={140} />
+                <Svg source={SETTINGS_MARK} alt="effortshift mark" width={140} height={140} />
               </Box>
               {/* A hairline along the bar's bottom: a one-pixel image stretched across (a Box cannot draw one pixel). */}
               <Box key="settings-rule" position="absolute" bottom={0} left={0} right={0} height={1} alignItems="flex-end">
@@ -4687,7 +4431,7 @@ Saved to ${out}.md and .json` }
           {headRow([
           <Box key="settings-title" {...(term ? { flexShrink: 0 } : { position: 'absolute', top: 0, left: 2, height: 2.5 })} flexDirection="row" alignItems="center" gap={1}>
             {term ? <Text color={ACCENT} bold>✦</Text> : null}
-            {Svg && !term ? <Svg source={SETTINGS_TITLE} alt="effortless" width={92} height={28} /> : <Text color={DASH_TEXT} bold>effortless</Text>}
+            <Text color={DASH_TEXT} bold>EffortShift</Text>
             {ownVersion ? <Text color="#6b6b73">v{ownVersion}</Text> : null}
             {/* Inside a part: Back to the cards, then the part's name. */}
             {card === null ? (
@@ -4702,25 +4446,12 @@ Saved to ${out}.md and .json` }
             {dirty ? <Text dimColor> · unsaved changes</Text> : null}
           </Box>,
           <Box key="settings-actions" {...(term ? { flexShrink: 1, flexWrap: 'wrap', columnGap: 2 } : { position: 'absolute', top: 0, right: 2, height: 2.5, gap: 2 })} flexDirection="row" alignItems="center">
-            {checking === 'checking' ? (
-              <Text dimColor>Checking…</Text>
-            ) : checking === 'newest' ? (
-              <Text dimColor>✓ Up to date</Text>
-            ) : checking.startsWith('found ') && (!ownVersion || isNewer(checking.slice(6), ownVersion)) ? (
-              <Button key="settings-update" variant="primary" label={`Update to ${checking.slice(6)}`} onPress={async () => {
-                const card = await read($, updateCard)
-                await update($, updateCheck, () => 'idle')
-                if (card) void runUpdate($, card)
-                await close()
-              }} />
-            ) : (
-              <Button key="settings-check-update" plain dimColor label="Check for updates" onPress={() => void checkUpdateNow($)} />
-            )}
+            <Text dimColor>Local fork · upstream updates disabled</Text>
             {/* A terminal without link support prints the whole address after the label, so there it copies instead. */}
             {term ? (
               <Button key="settings-bug" plain dimColor label="Report a bug" onPress={async () => {
                 const r = await $.ui.copy({ text: bugUrl, surface: e.surface }).catch(() => ({ isCopied: false as const }))
-                $.ui.toast(r.isCopied ? `Bug report link copied: ${bugUrl}` : `effortless: report a bug at ${bugUrl}`)
+                $.ui.toast(r.isCopied ? `Bug report link copied: ${bugUrl}` : `effortshift: report a bug at ${bugUrl}`)
               }} />
             ) : (
               <Text color="#9a9aa3"><Link href={bugUrl} label="Report a bug" /></Text>
@@ -4846,7 +4577,7 @@ Saved to ${out}.md and .json` }
             pick({ key: "settings-compact-with", label: "Compact with", value: shown.compactWith, options: [{ value: 'haiku', label: 'Haiku 5.5' }, { value: 'session', label: "Chat's model" }], onSelect: set('compactWith') }),
           ])) : card === 'handoff' ? (bare ? [] : [
             pick({ key: "settings-skill", label: "Handoff skill", value: shown.handoffSkill || '-', options: [
-                { value: '-', label: 'effortless (built in)' },
+                { value: '-', label: 'effortshift (built in)' },
                 ...[...new Set([...(shown.handoffSkill ? [shown.handoffSkill] : []), ...skillNames])].map(name => ({ value: name, label: `/${name}` })),
               ], onSelect: v => set('handoffSkill')(v === '-' ? '' : v) }),
             pick({ key: "settings-swamp", label: "Compact alert at", value: shown.swampAt, options: SWAMP_STEPS.map(n => ({ value: String(n), label: `${n}%` })), onSelect: set('swampAt') }),
@@ -4882,7 +4613,7 @@ Saved to ${out}.md and .json` }
         <Box key="compact-bar" position="relative" flexDirection="row" alignItems="center" paddingX={1} overflow="hidden"
           backgroundColor={BRAND_BG} borderStyle="round" borderColor={BRAND_EDGE}>
           <Box key="compact-art" position="absolute" top={-1} right={0} bottom={-1}>
-            <Svg source={BRAND_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
+            <Svg source={BRAND_SVG} alt="effortshift" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
           </Box>
           {/* Opening from the swamped band: its green fades out over the violet, then the entrance sweep. */}
           {nowCompact - compactOpenedAt < COMPACT_FADE_MS + 100 ? (
@@ -5009,7 +4740,7 @@ Saved to ${out}.md and .json` }
         <Box key="handoff-bar" position="relative" flexDirection="row" alignItems="center" paddingX={1} overflow="hidden"
           backgroundColor={BRAND_BG} borderStyle="round" borderColor={BRAND_EDGE}>
           <Box key="handoff-art" position="absolute" top={-1} right={0} bottom={-1}>
-            <Svg source={BRAND_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
+            <Svg source={BRAND_SVG} alt="effortshift" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
           </Box>
           {/* The entrance as the bar opens, only then: a choice redraws the bar. */}
           {introLayer({ Box, Svg }, 'handoff', await introShows($, 'handoff'))}
@@ -5053,16 +4784,16 @@ Saved to ${out}.md and .json` }
       // (position="relative" does not lift it). The spacer keeps the words clear of them; room is their width in
       // columns. The art is still: every click redraws the band.
       const band = (words: unknown, room: number, controls: unknown[]) => e.surface === 'terminal' ? (
-        terminalPanel($, e, 'setup', counter ? `✦ effortless setup  ${counter}` : '✦ effortless setup', words, controls)
+        terminalPanel($, e, 'setup', counter ? `✦ EffortShift setup  ${counter}` : '✦ EffortShift setup', words, controls)
       ) : (
         <Box key="setup" position="relative" flexDirection="row" alignItems="center" paddingX={1} overflow="hidden"
           backgroundColor={BRAND_BG} borderStyle="round" borderColor={BRAND_EDGE}>
           <Box key="setup-art" position="absolute" top={-1} right={0} bottom={-1}>
-            <Svg source={BRAND_SVG} alt="effortless" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
+            <Svg source={BRAND_SVG} alt="effortshift" width={FROST_WIDTH * 2} height={FROST_HEIGHT * 2} />
           </Box>
           <Box key="setup-words" position="relative" flexDirection="column" flexShrink={1} minWidth={0}>
             <Text color={ACCENT} bold wrap="truncate">
-              {counter ? `✦ effortless setup  ${counter}` : '✦ effortless setup'}
+              {counter ? `✦ EffortShift setup  ${counter}` : '✦ EffortShift setup'}
             </Text>
             {typeof words === 'string' ? <Text key="setup-what" wrap="truncate">{words}</Text> : words}
           </Box>
@@ -5141,7 +4872,7 @@ Saved to ${out}.md and .json` }
         return band('Who writes a Full ⇥ handoff?', 48, [
           <Select key="setup-skill" value={shown.handoffSkill || '-'}
             options={[
-              { value: '-', label: 'effortless (built in)' },
+              { value: '-', label: 'effortshift (built in)' },
               ...[...new Set([...(shown.handoffSkill ? [shown.handoffSkill] : []), ...skillNames])].map(name => ({ value: name, label: `/${name}` })),
             ]}
             onSelect={(v: string) => pick('handoffSkill', v === '-' ? '' : v)} />,
@@ -5207,7 +4938,7 @@ Saved to ${out}.md and .json` }
           detail: `${Math.round(heat.percent)}% of your ${window} limit used${resets ? ` · resets ${resets}` : ''}`,
           buttons: [
             <Button key="hot-save" variant="primary" hotkey="s" label={saving ? 'Save mode on' : 'Save mode'}
-              onPress={async () => { $.ui.toast(`effortless: ${await toggleSave($)}`) }} />,
+              onPress={async () => { $.ui.toast(`effortshift: ${await toggleSave($)}`) }} />,
             <Button key="hot-close" plain role="dismiss" label="✕" onPress={() => closeHot($, heat)} />,
           ],
         })
@@ -5231,7 +4962,7 @@ Saved to ${out}.md and .json` }
               variant="primary"
               label={saving ? 'Save mode on' : 'Save mode'}
               onPress={async () => {
-                $.ui.toast(`effortless: ${await toggleSave($)}`)
+                $.ui.toast(`effortshift: ${await toggleSave($)}`)
               }}
             />
             <Button key="hot-close" plain role="dismiss" label="✕" onPress={() => closeHot($, heat)} />
@@ -5240,8 +4971,6 @@ Saved to ${out}.md and .json` }
       )
     }
     // A handoff or compact running or just done: said above the prompt, where it is seen at once.
-    // A new version: offered, updating, or just updated (gone after UPDATED_CARD_MS or ✕). Desktop only; the terminal
-    // has /effortless update.
     const savedAt = (await $.store.get('settingsSavedAt').catch(() => null)) as number | null
     if (typeof savedAt === 'number') {
       const since = (await $.clock.now().catch(() => Date.now())) - savedAt
@@ -5250,8 +4979,6 @@ Saved to ${out}.md and .json` }
         return savedCardTree($, e)
       }
     }
-    const upd = e.surface === 'terminal' ? null : await read($, updateCard)
-    if (upd && !(upd.stage === 'done' && (await $.clock.now()) - upd.at >= UPDATED_CARD_MS)) return updateCardTree($, e, upd)
     const compactNow = e.surface === 'terminal' ? null : await compactCard($, !!e.props.isWorking)
     if (compactNow)
       return handoffCardTree($, e, compactNow, undefined,

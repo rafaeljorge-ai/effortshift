@@ -1,0 +1,8 @@
+{
+  "name": "effortshift",
+  "version": "0.2.0-alpha.1",
+  "description": "Recomenda esforço por regras locais; o hook não altera o esforço do Codex.",
+  "author": { "name": "Rafael Jorge" },
+  "skills": "./skills/",
+  "hooks": "./hooks/hooks.json"
+}
