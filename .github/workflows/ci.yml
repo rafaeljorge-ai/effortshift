@@ -1,0 +1,84 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Choose proportional lane
+        id: lane
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        shell: bash
+        run: |
+          lane=full
+          if [[ "$EVENT" == push ]]; then
+            lane=fast
+          elif [[ "$EVENT" == pull_request ]]; then
+            lane=docs
+            git diff --name-only -z "$BASE_SHA" "$HEAD_SHA" > "$RUNNER_TEMP/effortshift-paths"
+            while IFS= read -r -d '' path; do
+              case "$path" in
+                docs/*|README.md|CHANGELOG.md|AGENTS.md|.specs/*) ;;
+                *) lane=full ;;
+              esac
+            done < "$RUNNER_TEMP/effortshift-paths"
+            # Fail closed when either object is unavailable.
+            git cat-file -e "$BASE_SHA^{commit}"
+            git cat-file -e "$HEAD_SHA^{commit}"
+          fi
+          echo "name=$lane" >> "$GITHUB_OUTPUT"
+          echo "Validation lane: $lane"
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.npm
+          key: npm-tools-${{ runner.os }}-claude-2.1.292-browser-0.38.1
+      - name: Check package and credential hygiene
+        run: node tools/check-distribution.mjs
+      - name: Check syntax
+        if: steps.lane.outputs.name != 'docs'
+        run: npm run check
+      - name: Node regression suite
+        if: steps.lane.outputs.name != 'docs'
+        run: npm test
+      - name: Install pinned Claude test runtime
+        if: steps.lane.outputs.name == 'full'
+        run: npm install --global @anthropic-ai/claude-code@2.1.292 --ignore-scripts --no-audit --no-fund
+      - name: Validate and test Claude plugin (no inference)
+        if: steps.lane.outputs.name == 'full'
+        run: npm run test:claude
+      - name: Use supported runtime for browser tooling
+        if: steps.lane.outputs.name == 'full'
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Install pinned browser tool
+        if: steps.lane.outputs.name == 'full'
+        run: npm install --global agent-browser@0.38.1 --no-audit --no-fund
+      - name: Install browser and system libraries
+        if: steps.lane.outputs.name == 'full'
+        run: agent-browser install --with-deps
+      - name: Browser integration (fixture, no credentials or inference)
+        if: steps.lane.outputs.name == 'full'
+        run: npm run test:browser

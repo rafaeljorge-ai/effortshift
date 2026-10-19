@@ -51,7 +51,7 @@ function judgeSays(on: On, text: string) {
 /** What sits beneath the plugins in a session: the prompt goes through, the status line takes text. */
 function engine(on: On, env: Record<string, string> = {}, sessionModel = 'claude-opus-5-5', said: { role: string; text: string }[] = []) {
   mock.store(on)
-  mock.env(on, { EFFORTLESS_MODEL_UI: '1', ...env })
+  mock.env(on, { EFFORTSHIFT_MODEL_UI: '1', ...env })
   on('prompt.submit', (_$, e) => ({ text: e.text }))
   on('ui.status', () => ({ value: undefined }))
   on('session.messages', () => ({ value: said }) as never)
@@ -88,10 +88,10 @@ async function step($: Engine, effort: 'low' | 'medium' | 'high' | 'xhigh' | 'ma
 }
 
 /** The desktop footer: one Auto button, and the effort in use beside it. */
-const FOOTER = { plugin: 'effortless', surface: 'desktop', component: 'SessionMode', props: { modes: [] } } as never
+const FOOTER = { plugin: 'effortshift', surface: 'desktop', component: 'SessionMode', props: { modes: [] } } as never
 
 /** The band above the prompt on desktop: it draws nothing (only the terminal has rows there). */
-const DESK_BAND = { plugin: 'effortless', surface: 'desktop', ...BAND } as never
+const DESK_BAND = { plugin: 'effortshift', surface: 'desktop', ...BAND } as never
 
 /** What a mounted tree draws, as text: its elements, props and strings. */
 /** Nothing shows above the prompt on desktop: only the hidden hover cards, revealed by hovering the footer. */
@@ -149,7 +149,7 @@ describe('auto', () => {
     await step($, 'xhigh')
     expect(sent[0].effort).toBe('low')
     // Auto off, the app still on Extra (no change the mod could see): Extra goes out, not the judge's old low.
-    await $.command.run({ command: 'effortless', args: 'auto' })
+    await $.command.run({ command: 'effortshift', args: 'auto' })
     await step($, 'xhigh')
     expect(sent[1].effort).toBe('xhigh')
     await $.prompt.submit({ text: 'now plan the whole architecture', wait: false, origin: { kind: 'composer' } })
@@ -256,7 +256,7 @@ describe('auto', () => {
   })
 
   test('with the jev judge picked, the TypeSafe key is read from ~/.config/jev/.env when the environment has none', { options: { judge: 'jev' } } as never, async ($, on) => {
-    engine(on, { USERPROFILE: 'C:/Users/x' })
+    engine(on, { USERPROFILE: '/Users/test-user' })
     mock.clock(on)
     const asked = judgeSays(on, '{"model":"haiku","effort":"low","why":"x"}')
     const read: string[] = []
@@ -270,7 +270,7 @@ describe('auto', () => {
       return { value: { status: 200, ok: true, headers: {}, text: jevReply('high') } }
     })
     await $.prompt.submit({ text: 'hard task', wait: false, origin: { kind: 'composer' } })
-    expect(read.map(path => path.replaceAll('\\', '/'))).toEqual(['C:/Users/x/.config/jev/.env'])
+    expect(read.map(path => path.replaceAll('\\', '/'))).toEqual(['/Users/test-user/.config/jev/.env'])
     expect(auth).toEqual(['Bearer from-file'])
     expect(asked.length).toBe(0)
   })
@@ -303,7 +303,7 @@ describe('manual effort', () => {
     // The person picks Low in the app between two requests.
     await drain(1, 'low')
     expect(sent[1].effort).toBe('low')
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     expect((await ui.find({ key: 'auto' }))?.text).toContain('Auto off')
     await ui.unmount()
 
@@ -324,7 +324,7 @@ describe('model in use', () => {
 
     await switchTo('claude-opus-5-5', 'claude-haiku-5-5')
     await $.prompt.submit({ text: 'ok', wait: false, origin: { kind: 'composer' } })
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await ui.redraw()
     expect((await ui.find({ key: 'm-haiku' }))?.text).toContain('Haiku')
 
@@ -345,7 +345,7 @@ describe('two autos', () => {
     judgeSays(on, '{"model":"sonnet","effort":"low","why":"simple"}')
     const ran = recordCommands(on)
     const sent = recordSteps(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     expect((await ui.find({ key: 'auto' }))?.text).toContain('Auto on')
     expect((await ui.find({ key: 'auto-model' }))?.text).toContain('Auto off')
 
@@ -365,7 +365,7 @@ describe('two autos', () => {
     const ran = recordCommands(on)
     const mocked = mock.clock(on)
     on('turn.complete', () => ({ text: '' }))
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await ui.press({ key: 'auto' })
     await ui.press({ key: 'auto-model' })
 
@@ -395,7 +395,7 @@ describe('typed commands', () => {
     engine(on)
     const filled = box(on, '')
     const ran = recordCommands(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
 
     await ui.press({ key: 'm-haiku' })
 
@@ -408,7 +408,7 @@ describe('typed commands', () => {
     engine(on)
     const filled = box(on, 'ett halvskrivet meddelande')
     const ran = recordCommands(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
 
     await ui.press({ key: 'm-haiku' })
 
@@ -421,7 +421,7 @@ describe('typed commands', () => {
     engine(on)
     const filled = box(on, '')
     const sent = recordSteps(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
 
     await ui.press({ key: 'e-high' })
     await step($, 'medium')
@@ -434,7 +434,7 @@ describe('typed commands', () => {
 
 describe('footer text', () => {
   const PURPLE = '#a79cf7'
-  const auto = async ($: Engine) => String((await $.command.run({ command: 'effortless', args: 'auto' })).text)
+  const auto = async ($: Engine) => String((await $.command.run({ command: 'effortshift', args: 'auto' })).text)
   const saving = (on: On, outputTokens: number) =>
     on('turn.step', async function* (_$, e) {
       return {
@@ -446,7 +446,7 @@ describe('footer text', () => {
         usage: { ...USAGE, output_tokens: outputTokens, model: 'claude-opus-5-5' },
       } as never
     })
-  const asked = async ($: Engine) => String((await $.command.run({ command: 'effortless', args: 'stats' })).text)
+  const asked = async ($: Engine) => String((await $.command.run({ command: 'effortshift', args: 'stats' })).text)
 
   test('the footer is purple text and one small button; no box, nothing lit', async ($, on) => {
     engine(on)
@@ -594,7 +594,7 @@ describe('footer text', () => {
     await footer.unmount()
   })
 
-  test('/effortless stats reports the measured cost of every token kind, per effort, and the judge', async ($, on) => {
+  test('/effortshift stats reports the measured cost of every token kind, per effort, and the judge', async ($, on) => {
     engine(on)
     mock.clock(on)
     judgeSays(on, '{"model":"sonnet","effort":"low","why":"simple"}')
@@ -625,7 +625,7 @@ describe('footer text', () => {
   test('requests you steered yourself are not counted', async ($, on) => {
     engine(on)
     saving(on, 600)
-    const rows = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const rows = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await rows.press({ key: 'e-low' })
     await step($, 'high')
     expect(await asked($)).toContain('nothing measured yet')
@@ -641,7 +641,7 @@ describe('footer text', () => {
     engine(on)
     judgeSays(on, '{"model":"haiku","effort":"low","why":"simple"}')
     mock.clock(on)
-    const rows = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const rows = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await rows.press({ key: 'auto-model' })
 
     await $.prompt.submit({ text: 'hej', wait: false, origin: { kind: 'composer' } })
@@ -651,9 +651,9 @@ describe('footer text', () => {
     await rows.unmount()
   })
 
-  test('the model row is paused: effort only, unless EFFORTLESS_MODEL_UI=1', async ($, on) => {
-    engine(on, { EFFORTLESS_MODEL_UI: '0' })
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+  test('the model row is paused: effort only, unless EFFORTSHIFT_MODEL_UI=1', async ($, on) => {
+    engine(on, { EFFORTSHIFT_MODEL_UI: '0' })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     expect(await ui.find({ key: 'e-high' })).toBeDefined()
     expect(await ui.find({ key: 'm-opus' })).toBeUndefined()
     expect(await ui.find({ key: 'auto-model' })).toBeUndefined()
@@ -795,11 +795,15 @@ describe('cache countdown', () => {
     const footer = await $.ui.mount(FOOTER)
     expect(await drawn(footer)).not.toContain('Cold')
 
+    // A real response need not align with the session's 15-second timer.
+    // Keep this offset: the final tick at exactly 30 minutes still shows 30m.
+    await mocked.advance(100)
     await step($)
     expect(await drawn(footer)).toContain(shows('59m'))
 
-    // No request in between: the session's own timer moves it.
-    await mocked.advance(30 * 60_000)
+    // No request in between: let the next 15-second tick observe the crossed
+    // minute boundary instead of assuming the response and timer share a phase.
+    await mocked.advance(30 * 60_000 + 15_000)
     expect(await drawn(footer)).toContain(shows('29m'))
 
     expect(await drawn(footer)).not.toContain('"color":"#e')
@@ -887,14 +891,14 @@ describe('cache countdown', () => {
     await band.unmount()
   })
 
-  test('/effortless cold shows Cold and the Compact button at once, for testing', async ($, on) => {
+  test('/effortshift cold shows Cold and the Compact button at once, for testing', async ($, on) => {
     engine(on)
     mock.clock(on)
     answer(on, { ephemeral_1h_input_tokens: 500 })
     await start($, on)
     const footer = await $.ui.mount(FOOTER)
     await step($)
-    const reply = await $.command.run({ command: 'effortless', args: 'cold' })
+    const reply = await $.command.run({ command: 'effortshift', args: 'cold' })
     expect(String(reply.text)).toContain('cold')
     expect(await drawn(footer)).toContain(shows('❄ Cold'))
     expect(await footer.find({ key: 'compact' })).toBeUndefined()
@@ -987,12 +991,12 @@ describe('footer', () => {
     expect(ran).toEqual([])
   })
 
-  test('a different model is only suggested, and /effortless switch switches it', async ($, on) => {
+  test('a different model is only suggested, and /effortshift switch switches it', async ($, on) => {
     engine(on)
     judgeSays(on, '{"model":"haiku","effort":"low","why":"simple"}')
     const ran = recordCommands(on)
     const mocked = mock.clock(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await ui.press({ key: 'auto-model' })
 
     await $.prompt.submit({ text: 'hej', wait: false, origin: { kind: 'composer' } })
@@ -1011,7 +1015,7 @@ describe('footer', () => {
     judgeSays(on, '{"model":"haiku","effort":"low","why":"simple"}')
     recordCommands(on)
     const mocked = mock.clock(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await ui.press({ key: 'auto-model' })
 
     await $.prompt.submit({ text: 'hej', wait: false, origin: { kind: 'composer' } })
@@ -1035,7 +1039,7 @@ describe('band', () => {
       const sent = recordSteps(on)
       const ran = recordCommands(on)
 
-      const ui = await $.ui.mount({ plugin: 'effortless', surface, ...BAND })
+      const ui = await $.ui.mount({ plugin: 'effortshift', surface, ...BAND })
       expect((await ui.find({ key: 'auto' }))?.text).toContain('Auto on')
 
       await ui.press({ key: 'e-xhigh' })
@@ -1107,22 +1111,22 @@ describe('review fixes', () => {
     expect(sent[1].effort).toBe('low')
   })
 
-  test('/effortless switch switches to the suggested model and /effortless keep turns it down', async ($, on) => {
+  test('/effortshift switch switches to the suggested model and /effortshift keep turns it down', async ($, on) => {
     engine(on)
     judgeSays(on, '{"model":"haiku","effort":"low","why":"simple"}')
     const ran = recordCommands(on)
     const mocked = mock.clock(on)
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await ui.press({ key: 'auto-model' })
 
     await $.prompt.submit({ text: 'hej', wait: false, origin: { kind: 'composer' } })
-    const result = await $.command.run({ command: 'effortless', args: 'switch' })
+    const result = await $.command.run({ command: 'effortshift', args: 'switch' })
     await mocked.advance(10)
     expect(String(result.text)).toContain('haiku')
     expect(ran).toContain('/model haiku')
 
     await $.prompt.submit({ text: 'a new question about something else', wait: false, origin: { kind: 'composer' } })
-    const kept = await $.command.run({ command: 'effortless', args: 'keep' })
+    const kept = await $.command.run({ command: 'effortshift', args: 'keep' })
     expect(String(kept.text)).toContain('Keeping')
     await ui.unmount()
   })
@@ -1260,7 +1264,7 @@ describe('model-aware effort', () => {
 
 describe('keys', () => {
   test('auto never opens ~/.config/jev/.env: it judges with Haiku', async ($, on) => {
-    engine(on, { USERPROFILE: 'C:/Users/x' })
+    engine(on, { USERPROFILE: '/Users/test-user' })
     mock.clock(on)
     const asked = judgeSays(on, '{"model":"sonnet","effort":"low","why":"x"}')
     const read: string[] = []
@@ -1275,7 +1279,7 @@ describe('keys', () => {
 })
 
 describe('setup guide', () => {
-  const DESK = { plugin: 'effortless', surface: 'desktop', ...BAND } as never
+  const DESK = { plugin: 'effortshift', surface: 'desktop', ...BAND } as never
   const start = async ($: Engine, on: On) => {
     on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
     on('command.register', () => ({ value: undefined }) as never)
@@ -1301,7 +1305,7 @@ describe('setup guide', () => {
   test('an app with no /config row for the plugin: the choices are kept in the store and come back next session', async ($, on) => {
     engine(on)
     const mocked = mock.clock(on)
-    on('config.set', () => ({ deny: 'no /config row with key effortless.judge ($.config.list names them)' }) as never)
+    on('config.set', () => ({ deny: 'no /config row with key effortshift.judge ($.config.list names them)' }) as never)
     const said = toasts(on)
     await start($, on)
     const band = await $.ui.mount(DESK)
@@ -1314,7 +1318,7 @@ describe('setup guide', () => {
     await mocked.advance(16_000)
     expect(said.join(' ')).not.toContain('could not save')
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
-    await $.command.run({ command: 'effortless', args: 'settings' })
+    await $.command.run({ command: 'effortshift', args: 'settings' })
     const panel = await $.ui.mount(DESK)
     expect(await drawn(panel)).toContain('Haiku')
     await panel.press({ key: 'settings-card-judge' })
@@ -1354,7 +1358,7 @@ describe('setup guide', () => {
     await clickable(band, 'setup-actions')
     // Branded: the name in the footer's purple, the step counter beside it.
     expect(await drawn(band)).toContain('"color":"#a79cf7"')
-    expect(await drawn(band)).toContain('✦ effortless setup  1/4')
+    expect(await drawn(band)).toContain('✦ EffortShift setup  1/4')
     expect(await drawn(band)).toContain('Just Haiku (no key)')
     // The right side: a still SVG (every click redraws the band, and a redrawn animation flickers) with the gradient.
     const first = await drawn(band)
@@ -1397,17 +1401,17 @@ describe('setup guide', () => {
     expect(set).toEqual([])
     await band.press({ key: 'setup-done' })
     expect(set).toEqual([
-      { key: 'effortless.effortBias', value: '2' },
-      { key: 'effortless.handoffSkill', value: 'session-handoff' },
-      { key: 'effortless.appearance', value: 'light' },
+      { key: 'effortshift.effortBias', value: '2' },
+      { key: 'effortshift.handoffSkill', value: 'session-handoff' },
+      { key: 'effortshift.appearance', value: 'light' },
     ])
     await band.unmount()
     await expect($.ui.mount(DESK)).rejects.toThrow()
 
-    // A new session: the guide stays closed; /effortless setup opens it again.
+    // A new session: the guide stays closed; /effortshift setup opens it again.
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
     await expect($.ui.mount(DESK)).rejects.toThrow()
-    await $.command.run({ command: 'effortless', args: 'setup' })
+    await $.command.run({ command: 'effortshift', args: 'setup' })
     const again = await $.ui.mount(DESK)
     expect(await again.find({ key: 'setup-jev' })).toBeDefined()
     await again.unmount()
@@ -1431,7 +1435,7 @@ describe('setup guide', () => {
     expect(await band.find({ key: 'setup-jev' })).toBeDefined()
     // The cross keeps what was picked so far.
     await band.press({ key: 'setup-close' })
-    expect(set).toEqual([{ key: 'effortless.judge', value: 'jev' }])
+    expect(set).toEqual([{ key: 'effortshift.judge', value: 'jev' }])
     await band.unmount()
   })
 
@@ -1515,7 +1519,7 @@ describe('judge benchmark', () => {
     expect(report).toContain('haiku b: said medium, wanted high')
   })
 
-  test('/effortless bench runs every case through Haiku, keeps follow-ups, and writes the report', async ($, on) => {
+  test('/effortshift bench runs every case through Haiku, keeps follow-ups, and writes the report', async ($, on) => {
     engine(on)
     mock.clock(on)
     const asked = judgeSays(on, '{"model":"sonnet","effort":"low","why":"x"}')
@@ -1529,7 +1533,7 @@ describe('judge benchmark', () => {
     on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
     on('command.register', () => ({ value: undefined }) as never)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
-    const res = await $.command.run({ command: 'effortless', args: 'bench' })
+    const res = await $.command.run({ command: 'effortshift', args: 'bench' })
     expect(asked.length).toBe(1)
     expect(res.text).toContain('| haiku | 100% |')
     expect(res.text).toContain('| always medium |')
@@ -1708,12 +1712,12 @@ describe('cold band', () => {
     on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
     on('command.register', () => ({ value: undefined }) as never)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
-    const DESK = { plugin: 'effortless', surface: 'desktop', ...BAND } as never
+    const DESK = { plugin: 'effortshift', surface: 'desktop', ...BAND } as never
     const guide = await $.ui.mount(DESK)
     await guide.press({ key: 'setup-haiku' })
     await guide.press({ key: 'setup-close' })
     await guide.unmount()
-    await $.command.run({ command: 'effortless', args: 'cold' })
+    await $.command.run({ command: 'effortshift', args: 'cold' })
     const band = await $.ui.mount(DESK)
     expect(await drawn(band)).toContain('Chat went cold')
     expect(await drawn(band)).toContain('class=\\"f\\"')
@@ -1756,7 +1760,7 @@ describe('handoff', () => {
 
   function handoffEngine(on: On, said: { role: string; text: string }[] = []) {
     mock.store(on)
-    mock.env(on, { EFFORTLESS_MODEL_UI: '1' })
+    mock.env(on, { EFFORTSHIFT_MODEL_UI: '1' })
     on('ui.status', () => ({ value: undefined }))
     on('session.messages', () => ({ value: said }) as never)
     on('session.model', () => ({ value: 'claude-opus-5-5' }))
@@ -1813,7 +1817,7 @@ describe('handoff', () => {
     })
     const mocked = mock.clock(on)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
-    await $.command.run({ command: 'effortless', args: 'cold' })
+    await $.command.run({ command: 'effortshift', args: 'cold' })
     const footer = await $.ui.mount(FOOTER)
     await handOff($, footer, ['handoff-quick'])
     await mocked.advance(2500)
@@ -1871,7 +1875,7 @@ describe('handoff', () => {
     await footer.unmount()
   })
 
-  test("without a skill, Full is effortless's own: a turn that checks git and saves HANDOFF.md, no fork", async ($, on) => {
+  test("without a skill, Full is effortshift's own: a turn that checks git and saves HANDOFF.md, no fork", async ($, on) => {
     const { forked, submitted } = handoffEngine(on)
     const mocked = mock.clock(on)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
@@ -1918,7 +1922,7 @@ describe('handoff', () => {
     const mocked = mock.clock(on)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
     const reply = (text: string) =>
-      ({ plugin: 'effortless', surface: 'desktop', component: 'AssistantMessage', props: { text, isFirstOfReply: true } }) as never
+      ({ plugin: 'effortshift', surface: 'desktop', component: 'AssistantMessage', props: { text, isFirstOfReply: true } }) as never
     await $.turn.complete({ turnId: 't1', answer: 'Last reply.', durationMs: 1, isAborted: false, reason: 'answer' } as never)
     const footer = await $.ui.mount(FOOTER)
     await footer.press({ key: 'handoff' })
@@ -1956,7 +1960,7 @@ describe('handoff', () => {
     const filled: string[] = []
     on('prompt.fill', (_$, e) => {
       filled.push(e.text)
-      return { value: { isFilled: true, text: e.text } } as never
+      return { isFilled: true } as never
     })
     const mocked = mock.clock(on)
     await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
@@ -1970,7 +1974,7 @@ describe('handoff', () => {
 
   test('the handoff is written by a fork: no turn in the chat, then cleared and sent', async ($, on) => {
     mock.store(on)
-    mock.env(on, { EFFORTLESS_MODEL_UI: '1' })
+    mock.env(on, { EFFORTSHIFT_MODEL_UI: '1' })
     on('ui.status', () => ({ value: undefined }))
     on('session.messages', () => ({ value: [] }) as never)
     on('session.model', () => ({ value: 'claude-opus-5-5' }))
@@ -2008,7 +2012,7 @@ describe('handoff', () => {
   test('without a fork (no reply yet, or it failed) the handoff is written as a turn, then cleared and sent', async ($, on) => {
     // engine() without its prompt.submit, so this test can see what the mod sends.
     mock.store(on)
-    mock.env(on, { EFFORTLESS_MODEL_UI: '1' })
+    mock.env(on, { EFFORTSHIFT_MODEL_UI: '1' })
     on('ui.status', () => ({ value: undefined }))
     on('session.messages', () => ({ value: [] }) as never)
     on('session.model', () => ({ value: 'claude-opus-5-5' }))
@@ -2040,9 +2044,9 @@ describe('handoff', () => {
     await footer.unmount()
   })
 
-  test('a fork that writes nothing says why: in a toast and in /effortless debug, and the turn takes over', async ($, on) => {
+  test('a fork that writes nothing says why: in a toast and in /effortshift debug, and the turn takes over', async ($, on) => {
     mock.store(on)
-    mock.env(on, { EFFORTLESS_MODEL_UI: '1' })
+    mock.env(on, { EFFORTSHIFT_MODEL_UI: '1' })
     on('ui.status', () => ({ value: undefined }))
     on('session.messages', () => ({ value: [] }) as never)
     on('session.model', () => ({ value: 'claude-opus-5-5' }))
@@ -2068,7 +2072,7 @@ describe('handoff', () => {
     await mocked.advance(1000)
     expect(submitted.at(-1)).toBe(HANDOFF_PROMPT)
     expect(toasts.join(' ')).toContain('api-error 529 overloaded')
-    const debug = String((await $.command.run({ command: 'effortless', args: 'debug' })).text)
+    const debug = String((await $.command.run({ command: 'effortshift', args: 'debug' })).text)
     expect(debug).toContain('last fork: api-error 529 overloaded')
     await footer.unmount()
   })
@@ -2216,7 +2220,7 @@ describe('swamp band and setup entry', () => {
     await guide.unmount()
     await mocked.advance(16_000)
     await $.turn.complete({ turnId: 't1', answer: 'Last reply.', durationMs: 1, isAborted: false, reason: 'answer' } as never)
-    const reply = () => $.ui.mount({ plugin: 'effortless', surface: 'desktop', component: 'AssistantMessage', props: { text: 'Last reply.', isFirstOfReply: true } } as never)
+    const reply = () => $.ui.mount({ plugin: 'effortshift', surface: 'desktop', component: 'AssistantMessage', props: { text: 'Last reply.', isFirstOfReply: true } } as never)
     const band = await $.ui.mount(DESK_BAND)
     await band.press({ key: 'swamp-compact' })
     const pressed = band.press({ key: 'compact-go' })
@@ -2253,7 +2257,7 @@ describe('swamp band and setup entry', () => {
     await guide.unmount()
     await mocked.advance(16_000)
     await $.turn.complete({ turnId: 't1', answer: 'First answer.', durationMs: 1, isAborted: false, reason: 'answer' } as never)
-    const reply = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', component: 'AssistantMessage', props: { text: 'First answer.', isFirstOfReply: true } } as never)
+    const reply = await $.ui.mount({ plugin: 'effortshift', surface: 'desktop', component: 'AssistantMessage', props: { text: 'First answer.', isFirstOfReply: true } } as never)
     expect(await reply.find({ key: 'reply-warn' })).toBeUndefined()
     expect(await drawn(reply)).not.toContain('swamped')
     await reply.unmount()
@@ -2262,22 +2266,22 @@ describe('swamp band and setup entry', () => {
     await band.unmount()
   })
 
-  test('/effortless save switches save mode on and off', async ($, on) => {
+  test('/effortshift save switches save mode on and off', async ($, on) => {
     engine(on)
     mock.clock(on)
     await start($, on)
-    expect(String((await $.command.run({ command: 'effortless', args: 'save' })).text)).toContain('save mode on')
-    expect(String((await $.command.run({ command: 'effortless', args: 'save' })).text)).toContain('save mode off')
+    expect(String((await $.command.run({ command: 'effortshift', args: 'save' })).text)).toContain('save mode on')
+    expect(String((await $.command.run({ command: 'effortshift', args: 'save' })).text)).toContain('save mode off')
   })
 
   test('save mode paints the footer level ember; off again, it is purple', async ($, on) => {
     engine(on)
     mock.clock(on)
     await start($, on)
-    await $.command.run({ command: 'effortless', args: 'save' })
+    await $.command.run({ command: 'effortshift', args: 'save' })
     const footer = await $.ui.mount(FOOTER)
     expect(await drawn(footer)).toContain('"color":"#f08a3c"')
-    await $.command.run({ command: 'effortless', args: 'save' })
+    await $.command.run({ command: 'effortshift', args: 'save' })
     await footer.unmount()
     const again = await $.ui.mount(FOOTER)
     const text = await drawn(again)
@@ -2429,14 +2433,14 @@ describe('settings panel', () => {
   })
 
   test('Open settings opens the panel; the slider, range and key are saved from it', async ($, on) => {
-    engine(on, { USERPROFILE: 'C:/Users/x' })
+    engine(on, { USERPROFILE: '/Users/test-user' })
     const mocked = mock.clock(on)
     const set: { key: string; value: unknown }[] = []
     on('config.set', (_$, e) => {
       set.push({ key: e.key, value: e.value })
       return { value: e.value } as never
     })
-    const files: Record<string, string> = { 'C:/Users/x/.config/jev/.env': 'OTHER=1\n' }
+    const files: Record<string, string> = { '/Users/test-user/.config/jev/.env': 'OTHER=1\n' }
     const at = (path: string) => path.split('\\').join('/')
     on('fs.read', (_$, e) => ({ value: files[at(e.path)] ?? '' }) as never)
     on('fs.write', (_$, e) => {
@@ -2452,7 +2456,7 @@ describe('settings panel', () => {
     const guide = await $.ui.mount(DESK_BAND)
     await guide.press({ key: 'setup-close' })
     await guide.unmount()
-    await $.command.run({ command: 'effortless', args: 'down' } as never)
+    await $.command.run({ command: 'effortshift', args: 'down' } as never)
     const down = await $.ui.mount(DESK_BAND)
     await down.press({ key: 'down-settings' })
     await down.unmount()
@@ -2497,15 +2501,15 @@ describe('settings panel', () => {
     expect(await panel.find({ key: 'show-box-swamp' })).toBeUndefined()
     expect(set).toEqual([])
     await panel.press({ key: 'settings-save' })
-    expect(set).toContainEqual({ key: 'effortless.hide', value: 'timer' })
-    expect(set).toContainEqual({ key: 'effortless.handoffSkill', value: 'session-handoff' })
-    expect(set).toContainEqual({ key: 'effortless.effortBias', value: '1' })
-    expect(set).toContainEqual({ key: 'effortless.effortFloor', value: 'medium' })
-    expect(set).toContainEqual({ key: 'effortless.judge', value: 'jev' })
-    expect(set).toContainEqual({ key: 'effortless.modelAuto', value: 'on' })
-    expect(set).toContainEqual({ key: 'effortless.helpers', value: 'on' })
+    expect(set).toContainEqual({ key: 'effortshift.hide', value: 'timer' })
+    expect(set).toContainEqual({ key: 'effortshift.handoffSkill', value: 'session-handoff' })
+    expect(set).toContainEqual({ key: 'effortshift.effortBias', value: '1' })
+    expect(set).toContainEqual({ key: 'effortshift.effortFloor', value: 'medium' })
+    expect(set).toContainEqual({ key: 'effortshift.judge', value: 'jev' })
+    expect(set).toContainEqual({ key: 'effortshift.modelAuto', value: 'on' })
+    expect(set).toContainEqual({ key: 'effortshift.helpers', value: 'on' })
     expect(said.join(' | ')).toContain('key saved')
-    expect(files['C:/Users/x/.config/jev/.env']).toBe('OTHER=1\nTYPESAFE_API_KEY=tk-new\n')
+    expect(files['/Users/test-user/.config/jev/.env']).toBe('OTHER=1\nTYPESAFE_API_KEY=tk-new\n')
     await panel.unmount()
     // A plain card says it was saved, then goes.
     const saved = await $.ui.mount(DESK_BAND)
@@ -2541,10 +2545,10 @@ describe('switching parts off', () => {
 })
 
 describe('the command file', () => {
-  test('/effortless:effortless, as the app may name the command file, is answered by the mod', async ($, on) => {
+  test('/effortshift:effortshift, as the app may name the command file, is answered by the mod', async ($, on) => {
     engine(on)
     mock.clock(on)
-    const answer = await $.command.run({ command: 'effortless:effortless', args: 'settings' } as never)
+    const answer = await $.command.run({ command: 'effortshift:effortshift', args: 'settings' } as never)
     expect(String((answer as { text?: string }).text)).toContain('settings are open')
   })
 })
@@ -2586,7 +2590,7 @@ describe('progress bar rules', () => {
     expect(afterPrompt({ phase: 'asking', steps }, said)?.phase).toBe('working')
     expect(afterPrompt({ phase: 'paused', steps }, said)?.phase).toBe('working')
     expect(afterPrompt({ phase: 'done', steps }, said)).toBeNull()
-    expect(afterPrompt({ phase: 'done', steps }, { text: '/effortless debug', origin: { kind: 'composer' } })?.phase).toBe('done')
+    expect(afterPrompt({ phase: 'done', steps }, { text: '/effortshift debug', origin: { kind: 'composer' } })?.phase).toBe('done')
   })
 
   test('where it shows, what it says, and when the judge calls a turn big', () => {
@@ -2602,10 +2606,10 @@ describe('progress bar rules', () => {
   })
 
   test('Windows plays the chime with PowerShell; elsewhere the app plays it', () => {
-    const argv = soundArgv('C:\\Users\\x\\plugins\\effortless', 'sounds/done.wav')
+    const argv = soundArgv('C:\\Users\\x\\plugins\\effortshift', 'sounds/done.wav')
     expect(argv?.[0]).toBe('powershell.exe')
-    expect(argv?.join(' ')).toContain("SoundPlayer 'C:\\Users\\x\\plugins\\effortless\\sounds\\done.wav'")
-    expect(soundArgv('/Users/x/.claude/plugins/effortless', 'sounds/done.wav')).toBeNull()
+    expect(argv?.join(' ')).toContain("SoundPlayer 'C:\\Users\\x\\plugins\\effortshift\\sounds\\done.wav'")
+    expect(soundArgv('/Users/x/.claude/plugins/effortshift', 'sounds/done.wav')).toBeNull()
   })
 
 })
@@ -2635,7 +2639,7 @@ describe('terminal bands', () => {
     await $.session.start({ cwd: '.', surface: 'terminal', isInteractive: true } as never)
   }
   const at = (columns: number) =>
-    ({ plugin: 'effortless', surface: 'terminal', ...BAND, props: { ...BAND.props, bodyColumns: columns, maxRows: 14 } }) as never
+    ({ plugin: 'effortshift', surface: 'terminal', ...BAND, props: { ...BAND.props, bodyColumns: columns, maxRows: 14 } }) as never
 
   for (const kind of ['swamp', 'cold', 'hot', 'down'] as const) {
     test(`${kind}: art on the right when wide, none at 80 columns; the effort row stays under it`, async ($, on) => {
@@ -2645,7 +2649,7 @@ describe('terminal bands', () => {
       const guide = await $.ui.mount(at(120))
       await guide.press({ key: 'setup-close' })
       await guide.unmount()
-      await $.command.run({ command: 'effortless', args: kind } as never)
+      await $.command.run({ command: 'effortshift', args: kind } as never)
       const wide = await $.ui.mount(at(120))
       const text = await drawn(wide)
       expect(text).toContain('"type":"Raster"')
@@ -2671,7 +2675,7 @@ describe('terminal bands', () => {
     const guide = await $.ui.mount(at(36))
     await guide.press({ key: 'setup-close' })
     await guide.unmount()
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
+    await $.command.run({ command: 'effortshift', args: 'settings' } as never)
     const panel = await $.ui.mount(at(36))
     const text = await drawn(panel)
     // No blank buttons laid over the cards: a terminal paints their spaces over the title and summary.
@@ -2681,7 +2685,7 @@ describe('terminal bands', () => {
     expect(text).not.toMatch(/"key":"settings-(title|actions)"[^}]*"position":"absolute"/)
     expect(text).not.toContain('"href"')
     await panel.press({ key: 'settings-bug' })
-    expect(copied[0]).toContain('heycubit.github.io/effortless/report/')
+    expect(copied[0]).toContain('github.com/rafaeljorge-ai/effortshift/issues/new')
     await panel.press({ key: 'settings-card-effort' })
     expect(await drawn(panel)).toContain('Helpers')
     expect(await drawn(panel)).not.toContain(' '.repeat(40))
@@ -2729,7 +2733,7 @@ describe('dashboard', () => {
       await $.prompt.submit({ text, wait: false, origin: { kind: 'composer' } })
       await step($)
     }
-    const cacheLine = async () => String((await $.command.run({ command: 'effortless', args: 'debug' })).text).split(' | ').find(l => l.startsWith('cache:')) ?? ''
+    const cacheLine = async () => String((await $.command.run({ command: 'effortshift', args: 'debug' })).text).split(' | ').find(l => l.startsWith('cache:')) ?? ''
     // A hard prompt on the chat's own model warms the Opus cache.
     await ask('{"model":"opus","effort":"high","why":"big refactor"}', 'refactor the whole auth layer')
     expect(sent.at(-1)).toBe('claude-opus-5-5')
@@ -2798,7 +2802,7 @@ describe('dashboard', () => {
     }
     await ask(HAIKU, 'what is the folder for the tests')
     expect(sent.at(-1)).toBe('claude-haiku-5-5')
-    const stats = String((await $.command.run({ command: 'effortless', args: 'stats' })).text)
+    const stats = String((await $.command.run({ command: 'effortshift', args: 'stats' })).text)
     expect(stats).toContain('Cheaper model: 2 prompts moved down, 1 redone (50 %)')
   })
 
@@ -2915,8 +2919,8 @@ describe('dashboard', () => {
     const sent = recordSteps(on)
     await start($, on)
     await closeSetup($, DESK_BAND)
-    // The other chat: Low picked by hand in effortless, so Auto went off and the pick is kept for the next chat.
-    const rows = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND } as never)
+    // The other chat: Low picked by hand in effortshift, so Auto went off and the pick is kept for the next chat.
+    const rows = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND } as never)
     await rows.press({ key: 'e-low' })
     await rows.unmount()
     // A new chat starts from that; the person sets the app to Extra before the first prompt goes.
@@ -2938,15 +2942,15 @@ describe('dashboard', () => {
     await step($, 'low')
     expect(sent.at(-1)!.effort).toBe('low')
     expect(said.join(' ')).toContain('Auto is off. You picked Low')
-    expect(String((await $.command.run({ command: 'effortless', args: 'auto' })).text)).toContain('Auto on')
+    expect(String((await $.command.run({ command: 'effortshift', args: 'auto' })).text)).toContain('Auto on')
   })
 
-  test('/effortless debug says what the app asked for and what was sent', async ($, on) => {
+  test('/effortshift debug says what the app asked for and what was sent', async ($, on) => {
     engine(on)
     const sent = recordSteps(on)
-    const debug = async () => String((await $.command.run({ command: 'effortless', args: 'debug' })).text)
+    const debug = async () => String((await $.command.run({ command: 'effortshift', args: 'debug' })).text)
     expect(await debug()).toContain('last request: none yet')
-    await $.command.run({ command: 'effortless', args: 'auto' })
+    await $.command.run({ command: 'effortshift', args: 'auto' })
     await step($, 'xhigh')
     expect(sent.at(-1)!.effort).toBe('xhigh')
     expect(await debug()).toContain('last request: app asked claude-opus-5-5 at xhigh, sent claude-opus-5-5 at xhigh (unchanged)')
@@ -2980,7 +2984,7 @@ describe('dashboard', () => {
     await ask(HAIKU, 'what is the folder called')
     await ask(HAIKU, 'no problem, now what is the tests folder called')
     expect(sent.at(-1)).toBe('claude-haiku-5-5')
-    expect(String((await $.command.run({ command: 'effortless', args: 'stats' })).text)).toContain('0 redone')
+    expect(String((await $.command.run({ command: 'effortshift', args: 'stats' })).text)).toContain('0 redone')
   })
 
   test('the bench report says whether low confidence predicts a miss, and which models the judges picked', () => {
@@ -3035,7 +3039,7 @@ describe('dashboard', () => {
     const first = await $.ui.mount(DESK_BAND)
     await first.unmount()
     // Picking an effort by hand turns Auto off, so the word becomes Off: the switch says so, no flash.
-    const rows = await $.ui.mount({ plugin: 'effortless', surface: 'terminal', ...BAND })
+    const rows = await $.ui.mount({ plugin: 'effortshift', surface: 'terminal', ...BAND })
     await rows.press({ key: 'e-low' })
     await rows.unmount()
     const band = await $.ui.mount(DESK_BAND)
@@ -3181,7 +3185,7 @@ describe('dashboard', () => {
     mock.clock(on)
     await start($, on)
     await closeSetup($, DESK_BAND)
-    await $.command.run({ command: 'effortless', args: 'hot' } as never)
+    await $.command.run({ command: 'effortshift', args: 'hot' } as never)
     const band = await $.ui.mount(DESK_BAND)
     expect(await drawn(band)).toContain('Running hot')
     expect(await band.find({ key: 'dash-auto' })).toBeUndefined()
@@ -3194,7 +3198,7 @@ describe('dashboard', () => {
     engine(on)
     mock.clock(on)
     await start($, on, 'terminal')
-    const at = { plugin: 'effortless', surface: 'terminal', ...BAND, props: { ...BAND.props, bodyColumns: 120, maxRows: 14 } } as never
+    const at = { plugin: 'effortshift', surface: 'terminal', ...BAND, props: { ...BAND.props, bodyColumns: 120, maxRows: 14 } } as never
     await closeSetup($, at)
     const band = await $.ui.mount(at)
     const text = await drawn(band)
@@ -3340,7 +3344,7 @@ describe('a message typed while a turn runs', () => {
     const says = { effort: 'high' }
     judgeSaysNow(on, says)
     const sent = recordSteps(on)
-    const auto = () => $.command.run({ command: 'effortless', args: 'auto' })
+    const auto = () => $.command.run({ command: 'effortshift', args: 'auto' })
 
     await $.prompt.submit({ text: 'refactor the whole auth module across the app', wait: false, origin: { kind: 'composer' } })
     await stepOf($, 't1', 0)
@@ -3353,377 +3357,45 @@ describe('a message typed while a turn runs', () => {
   })
 })
 
-describe('updates', () => {
-  const DESK = { options: { layout: 'default' } } as never
-  /** A session with `installed` on disk and `latest` on main; records what the mod runs. */
-  function world(on: On, v: { installed: string; latest: string; fails?: string; git?: string; installPath?: string; noCli?: (bin: string) => boolean; env?: Record<string, string> }) {
-    engine(on, v.env)
+describe('local fork identity and update safety', () => {
+  test('session, setup, settings and update commands never fetch or install upstream', async ($, on) => {
+    engine(on)
     const clock = mock.clock(on)
-    on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
-    on('fs.read', (_$, e) => {
-      if (String(e.path).replaceAll('\\', '/').endsWith('.claude-plugin/plugin.json')) return { value: JSON.stringify({ version: v.installed }) } as never
-      if (v.installPath && String(e.path).replaceAll('\\', '/').endsWith('installed_plugins.json')) return { value: JSON.stringify({ plugins: { 'effortless@effortless': [{ installPath: v.installPath }] } }) } as never
-      if (String(e.path).replaceAll('\\', '/').endsWith('marketplaces/effortless/public.json')) return { value: JSON.stringify([{ version: v.latest, note: 'Quick and Full as one switch.' }]) } as never
-      return { value: '' } as never
+    const ran: string[] = []
+    const fetched: string[] = []
+    on('process.run', (_$, e) => {
+      ran.push(e.argv.join(' '))
+      return { value: { exitCode: 0, stdout: '', stderr: '' } } as never
     })
     on('http.fetch', (_$, e) => {
-      if (String(e.url).includes('public.json'))
-        return { value: { status: 200, ok: true, headers: {}, text: JSON.stringify([{ version: v.latest, date: '2026-10-07', note: 'Quick and Full as one switch.' }]) } } as never
-      return { value: { status: 404, ok: false, headers: {}, text: '' } } as never
+      fetched.push(String(e.url))
+      return { value: { ok: false, status: 404, text: '', headers: {} } } as never
     })
-    const ran: string[] = []
-    const envs: (Record<string, string> | undefined)[] = []
-    on('process.run', (_$, e) => {
-      // No claude where the app looks: the engine refuses to start it, as it does for a desktop-only user.
-      if (v.noCli?.(e.argv[0])) return { deny: `$.process.run(${e.argv[0]}) failed to start: ENOENT: Command '${e.argv[0]}' not found or is in an unsafe location (current directory)` } as never
-      ran.push(e.argv.join(' '))
-      envs.push(e.init?.env)
-      // git show answers with public.json as it is on stable, when the test gives one.
-      const stdout = e.argv[0] === 'git' && e.argv.includes('show') ? (v.git ?? '') : ''
-      return { value: v.fails ? { exitCode: 1, stdout: '', stderr: v.fails } : { exitCode: 0, stdout, stderr: '' } } as never
-    })
-    const commands: string[] = []
-    const commandArgs: string[] = []
-    on('command.run', (_$, e) => {
-      commands.push(`/${e.command}`)
-      if (e.args) commandArgs.push(`/${e.command} ${e.args}`)
-      return { text: 'ok' }
-    })
-    const copied: string[] = []
-    on('ui.copy', (_$, e) => {
-      copied.push((e as { text: string }).text)
-      return { value: { isCopied: true as const } } as never
-    })
-    return { clock, ran, envs, commands, commandArgs, copied }
-  }
-  const settle = () => new Promise(resolve => setTimeout(resolve, 30))
-  /** Through the setup guide a first session opens, which takes the band before any card. */
-  async function pastSetup(ui: { find: (q: { key: string }) => Promise<unknown>; press: (q: { key: string }) => Promise<unknown> }) {
-    for (let i = 0; i < 6 && (await ui.find({ key: 'setup-close' })); i++)
-      await ui.press({ key: (await ui.find({ key: 'setup-haiku' })) ? 'setup-haiku' : 'setup-close' })
-  }
-  const start = ($: Engine) => $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
-
-  test('versions compare by number and releases.json gives its newest entry', () => {
-    expect(isNewer('1.35.80', '1.35.79')).toBe(true)
-    expect(isNewer('1.36.0', '1.35.99')).toBe(true)
-    expect(isNewer('1.35.9', '1.35.10')).toBe(false)
-    expect(isNewer('1.35.79', '1.35.79')).toBe(false)
-    expect(latestRelease('[{"version":"1.2.3","note":"x"},{"version":"1.2.2"}]')).toEqual({ version: '1.2.3', note: 'x' })
-    expect(latestRelease('not json')).toBeUndefined()
-    expect(latestRelease('[{"version":"latest"}]')).toBeUndefined()
-  })
-
-  test('Check for updates in Settings looks now, past a Later, and offers the install in the same place', DESK, async ($, on) => {
-    world(on, { installed: '1.0.0', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-later' })
-    expect(await drawn(ui)).not.toContain('is out')
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const panel = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    expect(await panel.find({ key: 'settings-check-update' })).toBeDefined()
-    await panel.press({ key: 'settings-check-update' })
-    await settle()
-    expect((await panel.find({ key: 'settings-update' }))?.text).toContain('Update to 1.0.1')
-  })
-
-  test('a version found earlier is not offered once the installed one is as new', DESK, async ($, on) => {
-    const v = { installed: '1.0.0', latest: '1.0.1' }
-    world(on, v)
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-later' })
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const panel = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await panel.press({ key: 'settings-check-update' })
-    await settle()
-    expect((await panel.find({ key: 'settings-update' }))?.text).toContain('Update to 1.0.1')
-    // Installed some other way (a dev release, claude plugin update), and newer than what was found.
-    v.installed = '1.0.2'
-    v.latest = '1.0.2'
-    await start($)
-    await settle()
-    const again = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    expect(await again.find({ key: 'settings-update' })).toBeUndefined()
-    expect(await again.find({ key: 'settings-check-update' })).toBeDefined()
-  })
-
-  test('Check for updates trusts git over a web answer that lags behind', DESK, async ($, on) => {
-    const w = world(on, { installed: '1.0.1', latest: '1.0.1', git: JSON.stringify([{ version: '1.0.2', note: 'From git.' }]) })
-    await start($)
-    await settle()
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const panel = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(panel)
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const again = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await again.press({ key: 'settings-check-update' })
-    await settle()
-    expect((await again.find({ key: 'settings-update' }))?.text).toContain('Update to 1.0.2')
-    expect(w.ran.some(r => r.includes('fetch -q --depth 1 --filter=blob:none origin stable'))).toBe(true)
-  })
-
-  test('Check for updates looks again while an earlier Updated card is still up', DESK, async ($, on) => {
-    const v = { installed: '1.0.0', latest: '1.0.1' }
-    world(on, v)
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-go' })
-    await settle()
-    v.installed = '1.0.1'
-    await start($)
-    await settle()
-    expect(await drawn(ui)).toContain('Updated to 1.0.1')
-    // A newer release lands while that card is still showing.
-    v.latest = '1.0.2'
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const panel = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await panel.press({ key: 'settings-check-update' })
-    await settle()
-    expect((await panel.find({ key: 'settings-update' }))?.text).toContain('Update to 1.0.2')
-  })
-
-  test('Check for updates says Up to date when there is nothing newer', DESK, async ($, on) => {
-    world(on, { installed: '1.0.1', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await $.command.run({ command: 'effortless', args: 'settings' } as never)
-    const panel = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await panel.press({ key: 'settings-check-update' })
-    await settle()
-    expect(await drawn(panel)).toContain('Up to date')
-  })
-
-  test('the one button says Compact, opens the compact step, and stays on a narrow bar', DESK, async ($, on) => {
-    world(on, { installed: '1.0.1', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const wide = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(wide)
-    expect(await wide.find({ key: 'dash-compact' })).toBeUndefined()
-    expect(await wide.find({ key: 'dash-handoff' })).toBeDefined()
-    await wide.press({ key: 'dash-handoff' })
-    await settle()
-    expect(await drawn(wide)).toContain('compact-bar')
-    await wide.press({ key: 'compact-close' })
-    await settle()
-    await wide.unmount()
-    const narrow = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', component: 'AbovePrompt', props: { ...BAND.props, bodyColumns: 60 } } as never)
-    await pastSetup(narrow)
-    expect(await narrow.find({ key: 'dash-handoff' })).toBeDefined()
-    await narrow.unmount()
-  })
-
-  test('a newer version is offered; ✕ puts it away for a day, then it is offered again', DESK, async ($, on) => {
-    world(on, { installed: '1.0.0', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    expect(await drawn(ui)).toContain('effortless 1.0.1 is out')
-    expect((await ui.find({ key: 'update-go' }))?.text).toContain('Update')
-
-    await ui.press({ key: 'update-later' })
-    expect(await drawn(ui)).not.toContain('is out')
-    await start($)
-    await settle()
-    expect(await drawn(ui)).not.toContain('is out')
-
-    // A day later, or a newer version, comes back.
-    expect(updateSnoozed({ version: '1.0.1', at: 0 }, '1.0.1', 23 * 3600_000)).toBe(true)
-    expect(updateSnoozed({ version: '1.0.1', at: 0 }, '1.0.1', 25 * 3600_000)).toBe(false)
-    expect(updateSnoozed({ version: '1.0.1', at: 0 }, '1.0.2', 60_000)).toBe(false)
+    on('session.start', (_$, e) => ({ cwd: e.cwd }) as never)
+    on('fs.read', () => ({ value: '{"version":"1.71.0"}' }) as never)
+    on('command.register', () => ({ value: undefined }) as never)
+    await $.session.start({ cwd: '.', surface: 'desktop', isInteractive: true } as never)
+    for (const args of ['update', 'card offer', 'card done']) {
+      const reply = await $.command.run({ command: 'effortshift', args })
+      expect(String(reply.text)).toContain('upstream updates are disabled')
+    }
+    await $.command.run({ command: 'effortshift:effortshift', args: 'settings' })
+    const ui = await $.ui.mount({ plugin: 'effortshift', surface: 'desktop', ...BAND })
+    expect(await drawn(ui)).toContain('EffortShift')
+    expect(await ui.find({ key: 'settings-check-update' })).toBeUndefined()
+    expect(await ui.find({ key: 'settings-update' })).toBeUndefined()
     await ui.unmount()
+    expect(ran.filter(x => /git.*fetch|plugin.*update/.test(x))).toEqual([])
+    expect(fetched.filter(x => /github|public.json/.test(x))).toEqual([])
   })
-
-  test('nothing is offered when the installed version is the newest', DESK, async ($, on) => {
-    world(on, { installed: '1.0.1', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    expect(await drawn(ui)).not.toContain('update-card')
-    await ui.unmount()
-  })
-
-  test('syncPlan copies the installed version over the running cache folder, and nowhere else', () => {
-    const oldDir = 'C:\\Users\\x\\.claude\\plugins\\cache\\effortless-dev\\effortless\\1.57.0'
-    const newDir = 'C:\\Users\\x\\.claude\\plugins\\cache\\effortless-dev\\effortless\\1.59.0'
-    expect(syncPlan(oldDir, newDir)?.slice(0, 3)).toEqual(['robocopy', newDir, oldDir])
-    expect(syncPlan('/h/.claude/plugins/cache/m/effortless/1.0.0', '/h/.claude/plugins/cache/m/effortless/1.0.1')).toEqual(['cp', '-R', '/h/.claude/plugins/cache/m/effortless/1.0.1/.', '/h/.claude/plugins/cache/m/effortless/1.0.0'])
-    // The same folder, nothing installed, or a working copy outside the cache: nothing is written.
-    expect(syncPlan(newDir, newDir)).toBeUndefined()
-    expect(syncPlan(oldDir, undefined)).toBeUndefined()
-    expect(syncPlan('C:\\Users\\x\\Documents\\effortless', newDir)).toBeUndefined()
-  })
-
-  test('Update runs the two claude plugin commands, reloads, and the new version says Updated with a link', DESK, async ($, on) => {
-    const v = { installed: '1.0.0', latest: '1.0.1' }
-    const w = world(on, v)
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    w.ran.length = 0
-    await ui.press({ key: 'update-go' })
-    await settle()
-    expect(w.ran).toEqual(['claude plugin marketplace update effortless', 'claude plugin update effortless@effortless'])
-    expect(w.commands).toContain('/reload-plugins')
-    // Forced: a plain reload holds the new version back to keep the cache, and the old code would go on running.
-    expect(w.commandArgs).toContain('/reload-plugins --force')
-
-    // The reload: the new version on disk starts again.
-    v.installed = '1.0.1'
-    await start($)
-    await settle()
-    const text = await drawn(ui)
-    expect(text).toContain('Updated to 1.0.1')
-    expect(text).toContain('/whats-new/')
-    expect(text).toContain('Star on GitHub')
-    await ui.press({ key: 'update-share-go' })
-    await settle()
-    expect(w.copied).toEqual(['https://heycubit.github.io/effortless/'])
-    expect(text).toContain('github.com/HeyCubit/effortless')
-    await ui.unmount()
-  })
-
-  test('Settings shows no Star link anywhere; it belongs on the Updated card only', DESK, async ($, on) => {
-    world(on, { installed: '1.0.1', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'dash-settings' })
-    expect(await drawn(ui)).not.toContain('Star')
-    await ui.press({ key: 'settings-card-show' })
-    expect(await drawn(ui)).not.toContain('Star')
-    await ui.unmount()
-  })
-
-  test('Uninstall in Customize asks for a second press, then uninstalls and reloads', DESK, async ($, on) => {
-    const w = world(on, { installed: '1.0.1', latest: '1.0.1' })
-    on('ui.toast', () => ({ value: undefined }) as never)
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'dash-settings' })
-    await ui.press({ key: 'settings-card-show' })
-    expect(await drawn(ui)).toContain('Customize')
-    w.ran.length = 0
-    await ui.press({ key: 'settings-uninstall' })
-    expect(w.ran).toEqual([])
-    expect(await drawn(ui)).toContain('Press again to uninstall')
-    await ui.press({ key: 'settings-uninstall' })
-    await settle()
-    expect(w.ran).toEqual(['claude plugin uninstall effortless@effortless'])
-    expect(w.commands).toContain('/reload-plugins')
-    await ui.unmount()
-  })
-
-  test('a failed update says why and offers to try again', DESK, async ($, on) => {
-    world(on, { installed: '1.0.0', latest: '1.0.1', fails: 'network down' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-go' })
-    await settle()
-    const text = await drawn(ui)
-    expect(text).toContain('Update failed')
-    expect(text).toContain('network down')
-    expect((await ui.find({ key: 'update-go' }))?.text).toContain('Try again')
-    await ui.unmount()
-  })
-
-  test('a failed clone names git\'s own reason, not the tail of a wrapped sentence', () => {
-    const ssh = [
-      '✘ Failed to install plugin "effortless@effortless": Failed to clone repository: Cloning into \'C:\\x\\temp_github_1\'...',
-      'git@github.com: Permission denied (publickey).',
-      'fatal: Could not read from remote repository.',
-      '',
-      'Please make sure you have the correct access rights',
-      'and the repository exists.',
-    ].join('\r\n')
-    expect(updateFailure(ssh)).toBe('Could not read from remote repository.')
-    expect(updateFailure('✘ Plugin "effortless" not found in marketplace\n')).toBe('Plugin "effortless" not found in marketplace')
-    expect(updateFailure('network down')).toBe('network down')
-    expect(updateFailure('x'.repeat(300))).toHaveLength(160)
-    expect(updateFailure('')).toBe('')
-  })
-
-  test('claude is looked for on PATH, then where the Windows and Mac installers put it', () => {
-    expect(claudeCandidates('C:/Users/friend')).toEqual(['claude', 'C:/Users/friend/.local/bin/claude.exe'])
-    expect(claudeCandidates('/Users/friend')).toEqual(['claude', '/Users/friend/.local/bin/claude'])
-    expect(claudeCandidates(undefined)).toEqual(['claude'])
-    expect(noClaudeHint("$.process.run(claude) failed to start: ENOENT: Command 'claude' not found or is in an unsafe location (current directory)", 'C:/Users/friend')).toContain('install.ps1')
-    expect(noClaudeHint('spawn claude ENOENT', '/Users/friend')).toContain('install.sh')
-    expect(noClaudeHint('network down', '/Users/friend')).toBeUndefined()
-  })
-
-  test('with no claude on PATH, the update runs the installed one in .local/bin', DESK, async ($, on) => {
-    const w = world(on, { installed: '1.0.0', latest: '1.0.1', noCli: bin => bin === 'claude', env: { USERPROFILE: 'C:/Users/friend' } })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-go' })
-    await settle()
-    expect(w.ran.filter(r => r.includes('plugin update effortless@'))).toEqual(['C:/Users/friend/.local/bin/claude.exe plugin update effortless@effortless'])
-    expect(await drawn(ui)).toContain('Updated to 1.0.1')
-    await ui.unmount()
-  })
-
-  test('with no claude anywhere, a failed update says the CLI is needed and how to get it', DESK, async ($, on) => {
-    const { copied } = world(on, { installed: '1.0.0', latest: '1.0.1', noCli: () => true, env: { USERPROFILE: 'C:/Users/friend' } })
-    on('ui.toast', () => ({ value: undefined }) as never)
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-go' })
-    await settle()
-    const text = await drawn(ui)
-    expect(text).toContain('Update failed')
-    expect(text).toContain('install.ps1')
-    expect(text).not.toContain('ENOENT')
-    // The line can be cut off on a narrow card: Copy install command hands it over whole.
-    await ui.press({ key: 'update-copy' })
-    expect(copied).toEqual(['irm https://claude.ai/install.ps1 | iex'])
-    await ui.unmount()
-  })
-
-  test('the update reaches GitHub over HTTPS, so users without an SSH key there can update', DESK, async ($, on) => {
-    const w = world(on, { installed: '1.0.0', latest: '1.0.1' })
-    await start($)
-    await settle()
-    const ui = await $.ui.mount({ plugin: 'effortless', surface: 'desktop', ...BAND })
-    await pastSetup(ui)
-    await ui.press({ key: 'update-go' })
-    await settle()
-    const steps = w.ran.map((r, i) => [r, w.envs[i]] as const).filter(([r]) => r.startsWith('claude plugin'))
-    expect(steps.slice(-2).map(([r]) => r)).toEqual(['claude plugin marketplace update effortless', 'claude plugin update effortless@effortless'])
-    for (const [, env] of steps) expect(env).toMatchObject({ GIT_CONFIG_KEY_0: 'url.https://github.com/HeyCubit/.insteadOf', GIT_CONFIG_VALUE_0: 'git@github.com:HeyCubit/' })
-    await ui.unmount()
-  })
-
 })
 
 describe('agent panel', () => {
   const PANE = {
-    plugin: 'effortless',
+    plugin: 'effortshift',
     surface: 'desktop',
     component: 'Pane',
-    requestId: 'effortless-agents',
+    requestId: 'effortshift-agents',
     props: { title: 'Agents', isFocused: false, bodyColumns: 46, placement: 'dock', scroll: { offset: 0, bodyRows: 40 }, view: {} },
   } as never
   const start = async ($: Engine, on: On) => {
@@ -3738,7 +3410,7 @@ describe('agent panel', () => {
 
   test('the demo shows a card per agent still going and folds the finished ones into one', async ($, on) => {
     await start($, on)
-    const reply = await $.command.run({ command: 'effortless', args: 'agents demo' })
+    const reply = await $.command.run({ command: 'effortshift', args: 'agents demo' })
     expect(String(reply.text)).toContain('agent panel')
     const pane = await $.ui.mount(PANE)
     const text = await drawn(pane)
@@ -3761,7 +3433,7 @@ describe('agent panel', () => {
     on('turn.complete', () => ({ text: '' }))
     await start($, on)
     await $.agent.spawn({ prompt: 'look around', description: 'find the hooks', subagentType: 'Explore' } as never)
-    await $.command.run({ command: 'effortless', args: 'agents' })
+    await $.command.run({ command: 'effortshift', args: 'agents' })
     const pane = await $.ui.mount(PANE)
     expect(await drawn(pane)).toContain('1 working')
     expect(await drawn(pane)).toContain('find the hooks')
@@ -3789,7 +3461,7 @@ describe('agent panel', () => {
     }
     // Helpers start at medium: a low verdict comes up to it.
     expect(sent.map(s => s.effort)).toEqual(['medium', 'medium'])
-    await $.command.run({ command: 'effortless', args: 'agents' })
+    await $.command.run({ command: 'effortshift', args: 'agents' })
     const pane = await $.ui.mount(PANE)
     await pane.press({ key: 'agent-h1-press' }).catch(() => undefined)
     expect(await drawn(pane)).toContain('Medium')
@@ -3864,7 +3536,7 @@ describe('agent panel', () => {
 
   test('the demo map shows the parts touched; a part opens to its files', async ($, on) => {
     await start($, on)
-    await $.command.run({ command: 'effortless', args: 'agents demo' })
+    await $.command.run({ command: 'effortshift', args: 'agents demo' })
     const pane = await $.ui.mount(PANE)
     const text = await drawn(pane)
     expect(text).toContain('Map')
@@ -3886,7 +3558,7 @@ describe('agent panel', () => {
     on('session.root', () => ({ value: '/proj' }) as never)
     await start($, on)
     await $.tool.call({ tool: 'Read', file_path: '/proj/hooks/x.ts' } as never)
-    await $.command.run({ command: 'effortless', args: 'agents' })
+    await $.command.run({ command: 'effortshift', args: 'agents' })
     const pane = await $.ui.mount(PANE)
     const text = await drawn(pane)
     expect(text).toContain('1 part touched')
