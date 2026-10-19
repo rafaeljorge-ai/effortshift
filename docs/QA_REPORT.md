@@ -1,4 +1,98 @@
-# QA EffortShift — ES-001
+# QA EffortShift
+
+## ES-002 — candidato instalado; inferência medium/high pendente por quota
+
+Contrato local: abrir o painel por `codex` e `codex-rafael`, Auto ligado por padrão, controles digitáveis sem Alt e esforço aplicado pelo caminho nativo. Branch `feat/effortshift-native-panel`, HEAD `8659d214d17c21d27860c3454fa7b2dc4e4235f5` com alterações locais. Na retomada, Rafael autorizou finalizar, atualizar localmente e enviar esta ES-002 ao repositório (commit/push/PR); merge/release/deploy não autorizados. Issue [#3](https://github.com/rafaeljorge-ai/effortshift/issues/3).
+
+| Gate atual | Evidência definitiva |
+|---|---|
+| Node | 35/35, zero falhas; sintaxe, integridade e distribuição verdes |
+| TUI completa | **5788 passaram, zero falhas, quatro ignorados**, exit 0, 1020,78s; uma thread, stack16MiB, `INSTA_UPDATE=no INSTA_FORCE_PASS=0`, workspace absoluto |
+| Fonte reaplicada | `native:prepare` normal: arquivo upstream verificado, patch aplicado, hash integral conferido |
+| Revisão independente Sol high | 9177 entradas byte idênticas entre fonte testada e fresh, excluindo somente stamps; 1414 goldens correspondentes à baseline e aos quatro manifestos de aceite; zero candidatos pendentes |
+| Build locked | Passou em 3m24s na fonte definitiva; instalação real e isolada registradas |
+| Instalação local | Binário `3f343a05d062`; CLI oficial e quatro arquivos de perfil preservados na instalação |
+| zsh real | Integração ativa com backup; `codex` e `codex-rafael` abrem painel/Auto ON, perfil preservado |
+| Retomada: Node e browser | Node35/35, sintaxe/integridade/distribuição verdes; browser desktop1280/mobile390, RPC simulada, sem inferência |
+| Inferência no candidato instalado | Low respondeu `ES002_MAC_LOW_OK`; medium mostrou esforço medium mas falhou por quota; resposta medium/high pendente |
+
+Fonte definitiva `9b5f67f3c0f5`; SHA-256 `9c52ee29c82d1a21ccb368eda7a7ac45965cab20681fd83b37a323c129e16256`. Patch SHA-256 `d523287daa91bdfb764040ba4066604008724d1fccb8ebbeb636c82c6e98b3c9`, 204 caminhos (38 fontes/lock e 166 snapshots). As referências visuais foram revisadas individualmente antes do full final, que não atualiza nem suprime divergências. Coletas anteriores com `INSTA_FORCE_PASS=1` foram somente inventário e não são gates. Timers nativos foram preservados; execução serial evita concorrência neste host, sem atribuir causa comprovada às falhas intermitentes anteriores.
+
+Evidências privadas no diretório irmão `effortshift-native-build`: `es002-macos-controls-full-final-serial-no-update.log`, `es002-macos-node-final.log`, `es002-macos-check-final.log`, `es002-macos-final-frozen-prepare.log`. Não versionar logs reais, configuração ou credenciais. A pilha padrão do runner continua não homologada; a calibração de 16MiB não altera o CLI instalado.
+
+A instalação e a ativação do shell foram concluídas pela sessão indicada antes da retomada, apesar do checkpoint antigo ainda dizer “em andamento”. Evidências privadas: `es002-macos-final-frozen-build.log`, `es002-macos-final-frozen-install.log`, `es002-macos-installed-binary.json`, `es002-zsh-default.json`, `es002-install-preservation.json`, `pty-macos-rafael-result.json`, `pty-macos-low-panel.txt` e `pty-macos-medium-inference.txt`. O último registra a recusa explícita por limite de uso; a execução `pty-macos-medium-high-final.py` falhou esperando a resposta medium e não chegou a high. Não contabilizar esse harness como gate verde. As capturas de 120×35,80×24,50×20 anteriores ao bloqueio preservam painel e rascunho.
+
+Revisão final independente Sol high: sem impeditivos de código/distribuição; launcher, argumentos literais, integridade, política antes da captura do turno, manual/steering e invalidação de quota verificados. Checagem atual confirmou hashes de fonte, executável instalado, launcher e shell exatamente iguais aos artefatos registrados.
+
+PTY de controles da retomada: seis critérios passaram, sem inferência: abertura por `codex`/Auto ON, painel e rascunho em 120×35,80×24,50×20, ajuda/Auto/Save digitados e precedência do seletor nativo `/model`. Evidências `es002-resume-controls.log` e `pty-resume-controls-smoke-result.json`. A primeira asserção de popup confundiu a palavra EffortShift da ajuda no histórico com o rodapé; captura mostrou o seletor aberto, e a repetição verificou a ausência do rodapé específico sem remover o histórico. Nenhuma alteração de produto foi necessária.
+
+A primeira repetição Claude nesta retomada teve 178 pass/5 fail, todos por timeout nativo de 5000ms. A repetição isolada passou em 182/183 e manteve um timeout de 5000ms no contador de cache (5241ms); sem alterar fixtures/timers. Ambos os logs são diagnósticos, não gates verdes. Essa repetição não substitui o gate Rust já aprovado nem a inferência medium/high bloqueada.
+
+### Bloqueio de envio na retomada
+
+A terceira execução integral manteve **182 pass/1 fail**, 39,03s: `cache countdown > nothing before the first response; then it counts down with no further response, turns amber, goes cold`, timeout5000ms (5005,91ms observado). CLI2.1.292, idêntico ao CI; `hooks/` e `tests/` seguem idênticos ao HEAD base. Resultado atual não é verde, apesar do183/183 histórico.
+
+Diagnóstico independente em cópia privada: todos os asserts/timeout originais preservados. O avanço simulado de30min15s levou3,3–4,3s; startup e callbacks esgotaram o prazo antes da verificação seguinte. Amostras do host mostraram CPU quase saturada, load24–27 em10CPUs e swap intenso; a execução integral posterior voltou a39s, mas manteve esse timeout. Não há prova de causa exclusivamente ambiental. Stub de janela e `mock.clock.set` foram experimentados somente fora do Git e também falharam; nenhuma dessas mudanças foi aplicada.
+
+Não aumentar timeout, apagar asserts, alterar hooks ou usar histórico verde para contornar o gate. Evidências privadas: `es002-resume-claude.log`, `es002-resume-claude-serial.log`, `es002-resume-claude-definitive.log`, `claude-countdown-diagnostic-{1,2,4-set}.log`. Push/PR retidos até183/183 atual. A issue#3 registra a entrega; instalação local permanece íntegra. Sem alegação de conclusão integral, CI remoto, merge ou economia de consumo.
+
+## Histórico de diagnóstico ES-002 — superado pelo gate canônico final
+
+Mesmo escopo/branch/HEAD da entrega local abaixo, sem commit/push/release. Rafael confirmou Auto ligado nas novas sessões e autorizou corrigir impedimentos operacionais. Os resultados do candidato anterior permanecem históricos até nova validação do patch e do binário.
+
+| Gate atual | Evidência |
+|---|---|
+| Node/pacote | 35/35; sintaxe, integridade e distribuição verdes; revisão Sol high sem bloqueios |
+| Regressão da política | RED reproduziu saudação rebaixando implementação/investigação; fix Node verde; seis casos low/medium/high nos dois caches instalados passaram |
+| Shell zsh | Stub valida UI, resume/fork, argumentos literais e roteamento de utilitários oficiais; ativação global aguarda binário novo |
+| Hooks Stripe | Sete comandos adaptados com backup e revisão; sete transportes com caminho contendo espaço e dois eventos sintéticos verdes, sem conta/rede. Após autorização específica, quatro handlers suportados confiados individualmente pela TUI oficial |
+| TUI Rust | RED: 18 passaram/seis falharam; GREEN final focado: 25/25 e fixture de permissões 1/1. Consumo do comando, Auto ON e packing revisados; full/snapshots/instalação/PTY ainda pendentes |
+
+Full canônico de inventário concluído: **5646 passaram, 142 falharam e quatro foram ignorados**, 480,39s, com atualização apenas de candidatos (`INSTA_UPDATE=new`, raiz explícita e `INSTA_OUTPUT=summary`). Não é gate verde. Os 25 testes focados passaram; regressões comparativas de fila, resposta em 80×7 e duas imagens passaram nos asserts. A revisão encontrou perda material de `Done`/dica em telas baixas, ainda bloqueante; candidatos só serão aceitos após correção e revisão independente. Classificação integral: 141 divergências de snapshot e uma fixture de geometria do cursor. Revisão independente aprovou 139 payloads nos hashes do manifesto privado `es002-macos-controls-canonical-candidates-final.json` (`ffa699e8bf4ed1e5246fab4a55ba2118a8a3dcc53984b00f7b19da5e80a56025`). Dois candidatos não aprovados: `turn_tip_placements` por perda de resposta/dica e `questions_cleared_by_follow_up` por recorte da fixture capturar quota em vez do prompt. Novos deltas exigem revisão; o full sem atualização permanece pendente.
+
+Auditoria das referências visuais: a resolução automática do workspace Insta leu goldens de `effortshift-native-build/source`, diferentes da árvore candidata em 172 arquivos (163 conteúdos e nove metadados). O primeiro full pós-packing foi interrompido e permanece inconcluso. O full canônico usa `INSTA_WORKSPACE_ROOT` absoluto para `codex-rs` da fonte atual; candidatos foram comprovados dentro dessa árvore. Não copiar goldens antigos indiscriminadamente: recortes de histórico, fila/rascunho e imagens exigem correção/revisão antes do gate final. A evidência visual da suíte histórica abaixo não é autocontida e será substituída pelo gate canônico.
+
+Candidato intermediário, anterior aos 23 goldens adicionais e à fixture manual de Plan; requer regeneração: `a41b3563e20e`, source SHA-256 `2502c6cc858a8d23ffadcba187b504d7c3cd0926eb415287c8782b1bacac9311`, patch SHA-256 `d455dd22b29dffa171e63dc9bb915e9dc5c810c6bdf773c93e68367ee454774e`. Patch com 194 caminhos (37 fontes/lock, 157 snapshots). Revisão independente confirmou 9.177 entradas idênticas à árvore testada, exceto o stamp, e 1.414 goldens correspondentes exatamente à baseline com os 143 aceites registrados. Zero candidatos pendentes. Aprovação da correspondência é condicional ao full final sem atualização, ainda em execução; binário novo ainda não instalado.
+
+Falha Stripe: `args` não faz parte do formato de comando do Codex fixado; `node` sem caminho interpreta o JSON de stdin como JavaScript, saída 1. Atribuição aos dois avisos anteriores é sustentada pela configuração habilitada anterior e reprodução, mas o log histórico não reteve o nome/stderr de cada handler. Caches EffortShift receberam apenas `decision.mjs` e integridade atualizados. Backups privados fora do Git; atualizações do marketplace podem sobrescrever essas adaptações locais.
+
+Revisão de trust: a TUI oficial mostrou os quatro handlers Stripe modificados (SessionStart, dois PostToolUse e UserPromptSubmit). Cada comando foi conferido e aprovado com `t` na página individual; não houve trust geral. Comparação TOML com backup confirmou somente quatro campos `hooks.state.<stripe...>.trusted_hash` diferentes, sem outros ajustes semânticos. Log privado `pty-trust-stripe.raw` e evidência `stripe-trust-approved.json`. Configuração global GSD permaneceu desabilitada.
+
+Diagnóstico de startup com overrides `-c`: o candidato anterior não iniciou em 120s e o recorte de 15s não isola a causa antiga. Os dois recortes de 55s, no fork e no executável oficial, aguardavam a tela normal de revisão após mudar Stripe; não eram timeout de MCP. Depois da revisão autorizada, o oficial chegou a Ready. Falha de download de plugin remoto e Vercel duplicado não comprovam causa de espera. Caminho padrão compartilhado ainda precisa de novo smoke com o binário corrigido.
+
+Pendências de integração vistas em F2 no oficial: MCPs `hostinger` e `stripe` sem login; exigem autenticação própria (`codex mcp login hostinger` / `codex mcp login stripe`), não iniciada nesta entrega. Os plugins `habblaud` e `habblaud-mensagens` 0.8.0 declaram campo `modules` incompatível com o parser nativo de hooks e não são carregados por esse caminho; hook Habblaud separado em `~/.codex/hooks.json` continua listado. Há avisos informativos de quota, modo embutido, feature experimental chronicle e timeout SessionEnd limitado a 3s. Não desabilitar integrações, mudar timeouts ou esconder avisos para declarar 100% operacional. O comando `mavikctl` também não foi resolvido no zsh interativo (`whence -w mavikctl`); a instrução de retomada por esse nome exige ajustar o PATH/instalação separadamente. Isso não prova falha dos hooks MAVIK internos e não foi modificado nesta ES-002.
+
+## Histórico ES-002 — candidato anterior ao ajuste macOS
+
+Branch `feat/effortshift-native-panel`, HEAD `8659d214d17c21d27860c3454fa7b2dc4e4235f5` com alterações locais, sem novo commit/push/release. A ES-001 já foi integrada/publicada; a release pública não contém este painel. Fonte upstream: Codex `rust-v0.163.0`, commit `83086188ae0614bd882818ff1aa23f3194962012`.
+
+Identidade da fonte preparada: `3bda69510de5`; SHA-256 completo `1e7b04b72db67faf970dd667cceaae8759b514bca1020bfc1e7c6dcca5d06b99`. Patch: 104 caminhos, sendo 30 fontes/lockfile e 74 snapshots. Revisão independente Sol high aprovou código, fixtures, snapshots e correspondência integral entre a árvore testada e a nova árvore reaplicada do arquivo oficial verificado.
+
+| Gate | Resultado final |
+|---|---|
+| `npm test` | 33 passaram, zero falhas |
+| `npm run check` e `npm run check:distribution` | Sintaxe, integridade e higiene verdes |
+| `npm run test:claude` | Manifesto válido, 183 passaram; simulação sem inferência Claude |
+| Rust focado | 19 passaram, zero falhas |
+| Biblioteca TUI completa | 5782 passaram, zero falhas, quatro ignorados; 252,48s; `INSTA_UPDATE=no`, stack 16MiB, quatro threads |
+| `npm run native:prepare` | Arquivo oficial verificado, patch aplicado e hash da árvore inteira conferido |
+| `npm run native:build` | `cargo build --locked -p codex-cli --bin codex`, 1m09s, fonte nova |
+| Instalação isolada do binário real | Launcher executou `--version`: codex-cli 0.163.0 |
+| `npm run native:install` | Comando separado instalado, binário `bf31af1c16c5`; `--version` passou |
+| Preservação da instalação | Link/alvo/hash do Codex oficial e quatro arquivos config/auth idênticos imediatamente após instalar |
+| PTY e inferência finais | Sete critérios verdes, harness final exit 0: três tamanhos, resposta real `ES002_FINAL_OK` com Auto, manual desliga Auto, Save e precedência do menu `/model` |
+
+Comando da suíte TUI, a partir de `source-3bda69510de5/codex-rs`: `CARGO_TARGET_DIR=<cache>/target RUST_MIN_STACK=16777216 INSTA_UPDATE=no cargo test --locked -p codex-tui --lib -- --test-threads=4`. O binário libtest produzido pelo Cargo foi executado diretamente no gate final, a partir de `codex-rs/tui`, com os mesmos parâmetros. O runner com stack padrão abortou por stack overflow, reproduzido também em analytics sem alteração; não está aprovado com stack padrão. Quatro timeouts anteriores passaram isolados sem aumentar timers e a suíte definitiva passou integralmente.
+
+Os testes exercitam política manual/Auto/Plan, catálogo, risco/continuidade, steering, troca de conta, hidratação, teclado Vim, layout compacto, cursor/voz/imagens, atividade e precedência de modais. A atualização controlada de snapshots foi seguida por revisão e execução completa sem atualização. Quatro snapshots Daybreak foram preservados; duas respostas curtas conservaram prompt, resposta e Working. Não foram aceitas mudanças que escondessem conteúdo nativo para deixar o painel caber.
+
+Smoke: `codex-effortshift --no-alt-screen --sandbox read-only`, perfil existente e servidor compartilhado padrão, sem `-c`, sem edição de trust/config. Preservou painel e rascunho em 120×35, 80×24 e 50×20. Auto foi habilitado antes de enviar pedido literal sem ferramentas; assistente respondeu `ES002_FINAL_OK`, painel mostrou esforço low. Isso comprova o fluxo real e a configuração enviada, sem inspecionar esforço interno do provedor. Atalho manual mudou para medium e desligou Auto; Save ativou com janela real; `/model` abriu seletor nativo sem painel sobreposto.
+
+Limites operacionais: ocorreram duas mensagens `Hook failed`/código 1 em hooks do perfil, enquanto as mensagens consultivas EffortShift e a resposta real chegaram. Não foram alterados outros plugins/trust. Um smoke anterior com overrides `-c` forçou servidor embutido e ficou antes de SessionConfigured por 120s; causa interna não comprovada. A validação final cobre o caminho padrão compartilhado. O harness foi corrigido para aguardar startup, capturar a abertura do popup antes do redraw e tolerar somente EIO ao encerrar um PTY cujo filho já terminou; esses ajustes não alteram o produto.
+
+Evidências privadas ficam no diretório irmão `effortshift-native-build`: `es002-tui-full-definitive-no-update.log`, `es002-node-final.log`, `claude-tests-final.log`, `es002-final-prepare.log`, `es002-final-build.log`, `es002-final-install.log`, `es002-install-preservation.json`, `es002-pty-final.log`, `pty-final-smoke-result.json`, `pty-final-smoke.raw` e capturas por tamanho. Nenhum transcript, token ou configuração real foi versionado. A revisão Sol high não substitui revisão Claude exigida para eventual merge do roteamento; publicação e CI remoto da ES-002 permanecem fora desta entrega local. Sem medição completa de consumo de todos os agentes e sem alegação de economia.
+
+## ES-001 — evidência histórica
 
 ## Continuação nativa e distribuição — 19/10/2026
 

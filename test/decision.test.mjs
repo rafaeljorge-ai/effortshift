@@ -87,3 +87,15 @@ test("catálogo sem esforços recusa tarefa crítica, mas permite tarefa normal"
     null,
   );
 });
+test("saudação não reduz o esforço exigido pelo pedido técnico", () => {
+  for (const [prompt, effort] of [
+    ["Olá!", "low"],
+    ["Oi, crie um parser JSON", "medium"],
+    ["Hello, implement a parser", "medium"],
+    ["Olá, investigue o parser", "high"],
+    ["What is the architecture of this module?", "high"],
+    ["Oi, corrija autenticação", "high"],
+  ]) {
+    assert.equal(decideEffort({ prompt, supportedEfforts }).effort, effort, prompt);
+  }
+});

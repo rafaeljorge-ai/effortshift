@@ -20,7 +20,7 @@ for (const path of new Set(tracked.stdout.split('\0').filter(Boolean))) {
   if (path.endsWith('.env.example')) continue;
   assert.ok(!privatePath.test(path), `Private path in Git index: ${path}`);
   // Scan our delivery surfaces; inherited public upstream history stays intact.
-  if (!/^(?:src\/|bin\/|web\/|hooks\/|commands\/|types\/|plugins\/|test\/|tests\/|tools\/(?:check-|build-codex|test-browser|test-effortshift)|\.agents\/|\.claude-plugin\/|\.github\/|docs\/(?:planta\/|QA_REPORT\.md|CODEX-NATIVE\.md|UPSTREAM-SYNC\.md)|README\.md|CHANGELOG\.md|UPSTREAM\.json|package\.json|AGENTS\.md)/.test(path)) continue;
+  if (!/^(?:src\/|bin\/|web\/|hooks\/|commands\/|types\/|plugins\/|native-codex\/|test\/|tests\/|tools\/(?:check-|build-codex|native-codex|test-browser|test-effortshift)|\.agents\/|\.claude-plugin\/|\.github\/|docs\/(?:planta\/|QA_REPORT\.md|CODEX-(?:NATIVE|TUI)\.md|CLAUDE-CODEX-PARITY\.md|UPSTREAM-SYNC\.md)|README\.md|CHANGELOG\.md|UPSTREAM\.json|package\.json|AGENTS\.md)/.test(path)) continue;
   const contents = await readFile(new URL(path, root), 'utf8');
   assert.ok(!secret.test(contents), `Credential-like content in ${path}`);
 }

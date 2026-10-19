@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/openai/codex",
+  "tag": "rust-v0.163.0",
+  "commit": "83086188ae0614bd882818ff1aa23f3194962012",
+  "archive": "https://codeload.github.com/openai/codex/tar.gz/refs/tags/rust-v0.163.0",
+  "sha256": "5990ddb133184ce5e470c741d14f1eeb24a0b6cd36685ef78fb772cf83cab7fc",
+  "sourceSha256": "9c52ee29c82d1a21ccb368eda7a7ac45965cab20681fd83b37a323c129e16256"
+}

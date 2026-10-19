@@ -14,6 +14,8 @@ Controle de esforço para **Claude Code e Codex**, em um único repositório. Fo
 
 ## Instalar no Codex
 
+**Painel fixo como no Claude:** a versão local usa um fork da TUI, com executável separado `codex-effortshift`, Auto aplicado por turno e indicadores acima do composer. Os controles locais são `/effortshift auto`, `/effortshift save` e `/model`, sem Alt. A integração zsh torna esse painel padrão ao digitar `codex` ou `codex-rafael`, com Auto ligado nas novas sessões e o perfil preservado. Veja [instalação do painel nativo](docs/CODEX-TUI.md) e [estudo completo Claude → Codex](docs/CLAUDE-CODEX-PARITY.md). A release pública `0.2.0-alpha.1` e os comandos de plugin abaixo instalam apenas a faixa consultiva por prompt.
+
 Requisitos: Node.js 22+ e Codex CLI com plugins/hooks, validado localmente na versão **0.163.0**.
 
 ```sh
@@ -33,7 +35,7 @@ Depois de enviar um prompt, o CLI mostra algo como:
 ╰─ Consultivo · catálogo nativo desconhecido
 ```
 
-A recomendação não conhece o catálogo nem o esforço atual do modelo. Ajuste no menu nativo de esforço e confirme o valor na interface do Codex. `$effortshift` abre a ajuda da skill. Não há painel customizado idêntico ao Claude: isso depende de capacidade da interface oficial.
+A recomendação do plugin não conhece o catálogo nem o esforço atual do modelo. Ajuste no menu nativo de esforço e confirme o valor na interface do Codex. `$effortshift` abre a ajuda da skill. Para a faixa persistente com controle real de esforço, use o executável local separado `codex-effortshift`; o plugin não estende a TUI oficial.
 
 Para instalar a cópia local, troque o primeiro comando por `codex plugin marketplace add "$PWD"`. O catálogo Codex fica em `.agents/plugins/marketplace.json`; seu pacote autocontido fica em `plugins/codex/`. Se o marketplace `effortshift` já existir com outra origem, confira `codex plugin marketplace list` e remova apenas essa origem antes de registrá-la novamente.
 
