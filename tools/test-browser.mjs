@@ -20,7 +20,7 @@ const config = join(temporary, "agent-browser.json");
 await writeFile(config, "{}\n");
 // Avoid ambient provider/profile/restore settings and API credentials.
 const browserEnv = Object.fromEntries(
-  ["PATH", "HOME", "TMPDIR", "TEMP", "TMP", "SystemRoot", "LOCALAPPDATA", "XDG_CACHE_HOME"]
+  ["PATH", "HOME", "TMPDIR", "TEMP", "TMP", "SystemRoot", "LOCALAPPDATA", "XDG_CACHE_HOME", "CI"]
     .filter((key) => process.env[key] !== undefined)
     .map((key) => [key, process.env[key]]),
 );
