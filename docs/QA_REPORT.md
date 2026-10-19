@@ -21,6 +21,8 @@ Comando do smoke atual: `CODEX_HOME=~/.codex-rafael codex exec --ephemeral --san
 
 Revisão Claude em andamento com `--setting-sources '' --settings '{"disableAllHooks":true}' --strict-mcp-config --no-session-persistence --permission-mode plan --tools Read,Grep,Glob`, sem edição, delegação ou ferramentas externas. A tentativa inicial com --bare desativou OAuth e não comprova falta de autenticação; autenticação normal confirmada pelo CLI. Próximo gate: concluir revisão do HEAD atual antes de merge/tag/prerelease. CI remoto será acompanhado no PR; verde local não substitui CI. Nenhuma alegação de economia; uso total de todos os agentes não foi mensurado nesta retomada.
 
+Primeiro CI remoto no HEAD `517d91e` falhou na instalação do runtime Claude: `--ignore-scripts` impediu o binário nativo. Correção remove essa opção da instalação fixada; instalação limpa local da versão 2.1.292 confirmou binário funcional. Não foi alterada lógica para contornar teste. Novo CI deve passar antes do merge.
+
 ## Entrega local inicial — evidência histórica
 
 Ambiente: macOS local, Node v22.22.3, Codex CLI 0.163.0, Claude Code 2.1.292, agent-browser 0.38.1. Base upstream df5602e; candidato em alterações locais na branch feat/effortshift-local-alpha. Entrega local: sem deploy, publicação, PR ou merge.

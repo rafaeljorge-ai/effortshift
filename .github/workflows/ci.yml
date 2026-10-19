@@ -64,7 +64,7 @@ jobs:
         run: npm test
       - name: Install pinned Claude test runtime
         if: steps.lane.outputs.name == 'full'
-        run: npm install --global @anthropic-ai/claude-code@2.1.292 --ignore-scripts --no-audit --no-fund
+        run: npm install --global @anthropic-ai/claude-code@2.1.292 --no-audit --no-fund
       - name: Validate and test Claude plugin (no inference)
         if: steps.lane.outputs.name == 'full'
         run: npm run test:claude
