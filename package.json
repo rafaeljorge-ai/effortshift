@@ -9,12 +9,15 @@
   "scripts": {
     "start": "node bin/effortshift.mjs serve",
     "test": "node --test test/*.test.mjs",
-    "check": "node --check src/decision.mjs && node --check src/codex-rpc.mjs && node --check src/session.mjs && node --check src/server.mjs && node --check src/terminal.mjs && node --check bin/effortshift.mjs && node --check web/app.js && node --check tools/test-effortshift-plugin.mjs && node --check plugins/codex/scripts/hook.mjs && node --check tools/build-codex-plugin.mjs && node --check tools/check-upstream.mjs && node --check tools/check-distribution.mjs && node tools/build-codex-plugin.mjs --check && node --check tools/test-browser.mjs",
+    "check": "node --check src/decision.mjs && node --check src/codex-rpc.mjs && node --check src/session.mjs && node --check src/server.mjs && node --check src/terminal.mjs && node --check bin/effortshift.mjs && node --check web/app.js && node --check tools/test-effortshift-plugin.mjs && node --check plugins/codex/scripts/hook.mjs && node --check tools/build-codex-plugin.mjs && node --check tools/check-upstream.mjs && node --check tools/check-distribution.mjs && node tools/build-codex-plugin.mjs --check && node --check tools/test-browser.mjs && node --check tools/native-codex.mjs",
     "test:claude": "node tools/test-effortshift-plugin.mjs",
     "build:codex": "node tools/build-codex-plugin.mjs",
     "check:distribution": "node tools/check-distribution.mjs",
     "check:upstream": "node tools/check-upstream.mjs",
-    "test:browser": "node tools/test-browser.mjs"
+    "test:browser": "node tools/test-browser.mjs",
+    "native:prepare": "node tools/native-codex.mjs prepare",
+    "native:build": "node tools/native-codex.mjs build",
+    "native:install": "node tools/native-codex.mjs install"
   },
   "description": "Claude Code plugin, native Codex advisory plugin and Codex App Server visual clients",
   "license": "MIT",

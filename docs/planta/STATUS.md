@@ -1,4 +1,36 @@
-# Estado atual — ES-001
+# Estado atual — ES-002, painel nativo Codex
+
+2026-10-19. ES-001 integrada no PR2, commit `8659d214d17c21d27860c3454fa7b2dc4e4235f5`; prerelease `v0.2.0-alpha.1` publicada. Confirmado no remoto nesta sessão. Essa release não contém a ES-002. Sem deploy.
+
+ES-002 implementada e instalada localmente. Rafael pediu finalizar a sessão `01a1549f-9799-7480-bfc5-b5ccec2cdffb`, atualizar aqui e enviar ao repositório; commit/push e PR da ES-002 autorizados nesta retomada. Issue: https://github.com/rafaeljorge-ai/effortshift/issues/3. Sem autorização de merge, release ou deploy.
+
+Fonte congelada `9b5f67f3c0f5`, SHA-256 `9c52ee29c82d1a21ccb368eda7a7ac45965cab20681fd83b37a323c129e16256`. Gate canônico: **5788 passaram, zero falhas, quatro ignorados**, 1020,78s, uma thread, stack16MiB e atualização de snapshots desativada. Revisão independente anterior confirmou 9177 entradas idênticas e 1414 goldens; nenhum candidato pendente. Build locked passou em 3m24s e instalação real/isolada foi registrada.
+
+Binário instalado `3f343a05d062`, launcher `~/.local/bin/codex-effortshift`; CLI oficial e quatro arquivos de perfil preservados na instalação. A integração zsh já está ativa com backup: novas abas abrem painel por `codex` e `codex-rafael`, preservando CODEX_HOME; utilitários seguem pelo oficial. Ambos os comandos chegaram ao painel com Auto ligado. Não reinstalar nem aprovar hooks novamente.
+
+Retomada: Node35/35, sintaxe/integridade/distribuição e browser desktop/mobile verdes. A resposta real low `ES002_MAC_LOW_OK` foi recebida no candidato instalado. A tentativa medium mostrou esforço medium, mas o provedor recusou por limite de uso; medium/high com resposta real permanecem pendentes. Não trocar modelo, gastar créditos ou contornar esse limite para fechar o aceite. Testes automatizados cobrem a política; não substituem o smoke bloqueado.
+
+A revisão dos hooks Stripe do perfil Rafael já foi realizada na sessão indicada, além do perfil padrão; não repetir trust. MCPs sem login, manifestos Habblaud e `mavikctl` no PATH continuam limitações externas. Não declarar ambiente 100% operacional. Rafael, informado do gate Claude182/183, pediu explicitamente “finaliza o projeto ate aqui commita e pusha”: autorizado salvar e enviar este checkpoint com a pendência conhecida. O gate continua pendente: 178/183, depois182/183 e execução definitiva182/183 em39,03s; countdown excede5000ms. Essa exceção cobre somente commit/push/PR em rascunho, sem aprovação do gate, merge, release ou deploy. Revisão final Sol high sem impeditivos de código. PTY de controles sem inferência passou nos seis critérios; hashes de fonte/binário/launcher/shell conferidos. Entrega preservada na branch [feat/effortshift-native-panel](https://github.com/rafaeljorge-ai/effortshift/tree/feat/effortshift-native-panel), ligado à issue #3; CI remoto será a fonte dos checks de PR. Próxima ação técnica: resolver o timeout do countdown Claude e obter a suíte183/183 antes de aprovar eventual integração. Após renovação da quota, repetir medium/high antes de homologação operacional completa.
+
+## Fotografia histórica ES-002 anterior ao ajuste macOS
+
+A evidência visual abaixo foi superada pela auditoria da raiz dos snapshots. Não representa o gate atual nem a instalação do ajuste macOS.
+
+ES-002: entrega local anterior validada; ajuste de uso macOS solicitado por Rafael em andamento: comandos digitáveis sem Alt, indicadores sem aparência de botões e painel padrão no zsh. Branch `feat/effortshift-native-panel`, mesmo HEAD acima com alterações locais. Contrato em `.specs/002-codex-native-panel/SPEC.md`; estudo em `docs/CLAUDE-CODEX-PARITY.md`. Autorização atual cobre trabalho local reversível e instalação separada; nenhum novo commit, push ou release.
+
+Patch da TUI Codex 0.163.0: faixa acima do composer, esforço real por turno, Auto por regras locais, seleção manual soberana, cotas/reset reais e Save. Comando instalado: `codex-effortshift`; `codex` continua oficial. Em falta de altura, o painel cede espaço à atividade, imagens e texto editável; modais centrados o ocultam temporariamente. Matriz documenta capacidades portadas e lacunas.
+
+Candidato final: identidade `3bda69510de5`, source SHA-256 `1e7b04b72db67faf970dd667cceaae8759b514bca1020bfc1e7c6dcca5d06b99`. Patch com 104 caminhos: 30 fontes/lock e 74 snapshots revisados. `native:prepare` baixou/verificou o arquivo oficial, reaplicou o patch e validou a árvore inteira; revisão Sol high confirmou independentemente correspondência integral com a fonte testada, sem bloqueios. Fonte/build/logs privados ficam no diretório irmão `effortshift-native-build`, fora do Git.
+
+Gates verdes: 33/33 Node, sintaxe/integridade/distribuição, Claude 183/183 (simulação), 19/19 Rust focados e suíte TUI completa com **5782 passaram, zero falhas e quatro ignorados**, 252,48s, `INSTA_UPDATE=no`, quatro threads e stack de 16MiB. Build `cargo build --locked` passou em 1m09s na árvore nova. Instalações isolada e real passaram; launcher usa binário `bf31af1c16c5`. Link/alvo/hash do Codex oficial e quatro arquivos config/auth permaneceram idênticos imediatamente após instalar.
+
+Revisão independente cobriu continuidade crítica Plan/Default, invalidação de quota/Save na troca de conta, Auto antes da primeira thread, hidratação Ultra, Vim legado, geometria/atividade/rascunho em terminais pequenos e modais. Fixtures preservam contratos nativos; snapshots não ocultam avisos, resposta, Working, voz ou cursor. Os quatro timeouts de uma execução anterior passaram em série sem aumentar timers e a suíte definitiva passou integralmente. Contenção era hipótese, não causa comprovada.
+
+Limitações: stack padrão do runner Rust abortou por stack overflow, reproduzido inclusive em teste de analytics sem alteração; mesma verificação passa com `RUST_MIN_STACK=16777216`. Não afirmar stack padrão verde. Hooks de perfil existentes podem apresentar avisos/falhas; não alterar configuração ou trust para ocultá-los. PTY final preservou painel/rascunho em 120×35, 80×24 e 50×20; Auto ligado antes do envio, resposta real `ES002_FINAL_OK`, seleção manual desligando Auto, Save ativado com cota real e `/model` com precedência. Duas falhas de hooks do perfil (código 1) não impediram a resposta. O smoke padrão usa servidor compartilhado, sem overrides `-c`; com overrides de diagnóstico, o modo embutido não concluiu inicialização em 120s, causa não comprovada. Não declarar todos os perfis/plugins operacionais. Plano B: Codex coordenou; eventual merge de roteamento exige revisão independente Claude, autorização e CI atual. Não há mensuração completa dos tokens/custo de todos os agentes nem alegação de economia.
+
+Uso local: `codex-effortshift`. Evidência consolidada em `docs/QA_REPORT.md`. Sem gates locais pendentes para o caminho padrão validado. Publicação da ES-002 permanece fora da autorização atual: eventual entrega remota exige autorização, issue/PR, CI verde no HEAD e revisão independente Claude antes do merge.
+
+## Fotografia histórica ES-001 anterior ao merge
 
 2026-10-19. EffortShift 0.2.0-alpha.1 na branch `feat/effortshift-local-alpha`, base upstream `df5602e`. Continuação da mesma ES-001, incluindo adaptador nativo Codex e preparação da distribuição pública. Repositório: https://github.com/rafaeljorge-ai/effortshift ; issue: https://github.com/rafaeljorge-ai/effortshift/issues/1 ; PR: https://github.com/rafaeljorge-ai/effortshift/pull/2 . Sem deploy.
 

@@ -24,6 +24,8 @@ export function decideEffort({
     };
   if (mode === "manual" && !supported.includes(manualEffort))
     throw new Error("Esforço manual incompatível com o modelo.");
+  const complex = /\b(arquitet|diagn[oó]stic|refator|investig|complex|architecture|debug)/iu.test(prompt);
+  const implementation = /\b(implement|crie|criar|construa|corrija|corrigir|fix|build|develop)/iu.test(prompt);
   let target =
     mode === "manual"
       ? manualEffort
@@ -32,12 +34,7 @@ export function decideEffort({
         : profile === "quality"
           ? "high"
           : "medium";
-  if (
-    mode === "auto" &&
-    /\b(arquitet|diagn[oó]stic|refator|investig|complex|architecture|debug)/iu.test(
-      prompt,
-    )
-  )
+  if (mode === "auto" && complex)
     target = "high";
   if (
     /^(continue|continuar|prossiga|continue de onde)/iu.test(prompt.trim()) &&
@@ -47,9 +44,7 @@ export function decideEffort({
     target = previousEffort;
   if (
     mode === "auto" &&
-    /\b(implement|crie|criar|construa|corrija|corrigir|fix|build|develop)/iu.test(
-      prompt,
-    ) &&
+    implementation &&
     EFFORTS.indexOf(target) < 1
   )
     target = "medium";
@@ -57,6 +52,8 @@ export function decideEffort({
     mode === "auto" &&
     profile === "balanced" &&
     !critical &&
+    !complex &&
+    !implementation &&
     /^(oi|ol[aá]|hello|obrigad[oa]|qual [ée]|o que [ée]|quanto [ée]|what is)(?=\s|$|[?.,!])/iu.test(
       prompt.trim(),
     ) &&
