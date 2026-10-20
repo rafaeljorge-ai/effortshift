@@ -40,3 +40,5 @@ Coordenador: esta cápsula, STATUS, matriz de estudo, patch versionado, scripts 
 ## Retomada e envio autorizado — 19/10/2026
 
 Rafael indicou a sessão `01a1549f-9799-7480-bfc5-b5ccec2cdffb` e pediu finalizar o trabalho existente, enviar ao repositório e atualizar a instalação aqui. Esta autorização substitui o limite anterior de commit/push somente para a ES-002: permite commit, push da branch e PR revisável no origin `rafaeljorge-ai/effortshift`, issue #3. Não autoriza merge, release ou deploy. O smoke real medium/high foi bloqueado pela quota da conta, permanecendo pendente; testes locais verdes não substituem essa inferência.
+
+Checkpoint autorizado: após ser informado do teste Claude182/183 e do push retido, Rafael pediu explicitamente finalizar até aqui, commitar e pushar. A autorização permite enviar o estado atual com pendências documentadas; não transforma testes falhos em gates verdes nem autoriza merge/release/deploy.
